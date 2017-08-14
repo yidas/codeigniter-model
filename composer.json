@@ -1,0 +1,16 @@
+{
+    "name": "yidas/codeigniter-model",
+    "description": "CodeIgniter 3 ORM Base Model pattern with My_model example",
+    "keywords": ["codeIgniter", "model", "base model", "my_model"],
+    "homepage": "https://github.com/yidas/codeigniter-model",
+    "type": "project",
+    "license": "BSD-3-Clause",
+    "support": {
+        "issues": "https://github.com/yidas/codeigniter-model/issues",
+        "source": "https://github.com/yidas/codeigniter-model"
+    },
+    "minimum-stability": "stable",
+    "autoload": {
+        "classmap": ["src/"]
+    }
+}
