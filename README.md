@@ -191,7 +191,7 @@ $this->Model->delete(123, true);
 
 ### forceDelete()
 
-Delete the selected record(s) with Timestamps feature into the associated database table.
+Force Delete the selected record(s) with Timestamps feature into the associated database table.
 
 ```php
 $result = $this->Model->forceDelete(123)
@@ -202,6 +202,46 @@ $result = $this->Model->forceDelete(123)
 $this->Model->find()->where('id', 123);
 $result = $this->Model->forceDelete();
 ```
+
+
+### restore()
+
+Restore SOFT_DELETED field value to the selected record(s) into the associated database table..
+
+```php
+$result = $this->Model->restore(123)
+```
+
+```php
+// Query builder ORM usage
+$this->Model->withTrashed()->find()->where('id', 123);
+$this->Model->restore();
+```
+
+### withTrashed()
+
+Without SOFT_DELETED filter(condition) for next find()
+
+```php
+$this->Model->withTrashed()->find();
+```
+
+### withoutGlobalScopes()
+
+Without Global Scopes filter(condition) for next find()
+
+```php
+$this->Model->withoutGlobalScopes()->find();
+```
+
+### withAll()
+
+Without all Model filter(condition) for next find()
+
+```php
+$this->Model->withAll()->find();
+```
+
 
 ---
 
