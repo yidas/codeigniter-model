@@ -4,7 +4,7 @@
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  0.12.1
+ * @version  0.13.0
  * @see      https://github.com/yidas/codeigniter-model
  */
 class BaseModel extends CI_Model
@@ -194,7 +194,7 @@ class BaseModel extends CI_Model
     }
 
     /**
-     * Returns a single record array by a primary key or an array of column values with Model Filters.
+     * Return a single record array by a primary key or an array of column values with Model Filters.
      *
      * @param mixed $condition Refer to _findByCondition() for the explanation of this parameter
      * @return array Result
@@ -209,7 +209,7 @@ class BaseModel extends CI_Model
     }
 
     /**
-     * Returns a list of records that match the specified primary key value(s) or a set of column values with Model Filters.
+     * Return a list of records that match the specified primary key value(s) or a set of column values with Model Filters.
      *
      * @param mixed $condition Refer to _findByCondition() for the explanation 
      * @return array Result
@@ -224,14 +224,14 @@ class BaseModel extends CI_Model
     }
 
     /**
-     * Inserts a row with Timestamps feature into the associated database table using the attribute values of this record.
+     * Insert a row with Timestamps feature into the associated database table using the attribute values of this record.
      * 
      * @param array $attributes
      * @return bool Result
      * @example
      *  $result = $this->Model->insert([
-     *    'name' => 'Nick Tsai',
-     *    'email' => 'myintaer@gmail.com',
+     *      'name' => 'Nick Tsai',
+     *      'email' => 'myintaer@gmail.com',
      *  ]);
      */
     public function insert($attributes)
@@ -242,10 +242,15 @@ class BaseModel extends CI_Model
     }
 
     /**
-     * Inserts a batch of rows with Timestamps feature into the associated database table using the attribute values of this record.
+     * Insert a batch of rows with Timestamps feature into the associated database table using the attribute values of this record.
      * 
      * @param array $data The rows to be batch inserted
      * @return int Number of rows inserted or FALSE on failure
+     * @example
+     *  $result = $this->Model->batchInsert([
+     *      ['name' => 'Nick Tsai', 'email' => 'myintaer@gmail.com'],
+     *      ['name' => 'Yidas', 'email' => 'service@yidas.com']
+     *  ]);
      */
     public function batchInsert($data)
     {
@@ -258,7 +263,26 @@ class BaseModel extends CI_Model
     }
 
     /**
-     * Saves the changes with Timestamps feature to the selected record(s) into the associated database table.
+     * Replace a row with Timestamps feature into the associated database table using the attribute values of this record.
+     * 
+     * @param array $attributes
+     * @return bool Result
+     * @example
+     *  $result = $this->Model->replace([
+     *      'id' => 1,
+     *      'name' => 'Nick Tsai',
+     *      'email' => 'myintaer@gmail.com',
+     *  ]);
+     */
+    public function replace($attributes)
+    {
+        $this->_attrEventBeforeInsert($attributes);
+
+        return $this->db->replace($this->table, $attributes);
+    }
+
+    /**
+     * Save the changes with Timestamps feature to the selected record(s) into the associated database table.
      * 
      * @param array $attributes
      * @param mixed $condition Refer to _findByCondition() for the explanation 
@@ -267,6 +291,7 @@ class BaseModel extends CI_Model
      * @example    
      *  $this->Model->update(['status'=>'off'], 123)
      * @example
+     *  // Query builder ORM usage
      *  $this->Model->find()->where('id', 123);
      *  $this->Model->update(['status'=>'off']);
      */
@@ -283,7 +308,7 @@ class BaseModel extends CI_Model
     }
 
     /**
-     * Deletes the selected record(s) with Timestamps feature into the associated database table.
+     * Delete the selected record(s) with Timestamps feature into the associated database table.
      * 
      * @param mixed $condition Refer to _findByCondition() for the explanation 
      * @param boolean $forceDelete Force to hard delete
@@ -293,6 +318,7 @@ class BaseModel extends CI_Model
      * @example    
      *  $this->Model->delete(123);
      * @example
+     *  // Query builder ORM usage
      *  $this->Model->find()->where('id', 123);
      *  $this->Model->delete();
      * @example  
@@ -326,7 +352,7 @@ class BaseModel extends CI_Model
     }
 
     /**
-     * Force Deletes the selected record(s) with Timestamps feature into the associated database table.
+     * Force Delete the selected record(s) with Timestamps feature into the associated database table.
      * 
      * @param mixed $condition Refer to _findByCondition() for the explanation 
      * @return mixed CI delete result of DB Query Builder
@@ -334,6 +360,7 @@ class BaseModel extends CI_Model
      * @example    
      *  $this->Model->forceDelete(123)
      * @example
+     *  // Query builder ORM usage
      *  $this->Model->find()->where('id', 123);
      *  $this->Model->forceDelete();
      */
@@ -343,7 +370,7 @@ class BaseModel extends CI_Model
     }
 
     /**
-     * Restore SOFT_DELETED field value to the selected record(s) into the associated database table..
+     * Restore SOFT_DELETED field value to the selected record(s) into the associated database table.
      * 
      * @param mixed $condition Refer to _findByCondition() for the explanation 
      * @return bool Result
@@ -351,7 +378,8 @@ class BaseModel extends CI_Model
      * @example    
      *  $this->Model->restore(123)
      * @example
-     *  $this->Model->find()->where('id', 123);
+     *  // Query builder ORM usage
+     *  $this->Model->withTrashed()->find()->where('id', 123);
      *  $this->Model->restore();
      */
     public function restore($condition=NULL)
@@ -597,5 +625,6 @@ class BaseModel extends CI_Model
         return "{$this->table}.{$columnName}";
     }
 }
+
 
 
