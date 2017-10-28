@@ -4,7 +4,7 @@
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  0.13.0
+ * @version  0.14.0
  * @see      https://github.com/yidas/codeigniter-model
  */
 class BaseModel extends CI_Model
@@ -297,10 +297,8 @@ class BaseModel extends CI_Model
      */
     public function update($attributes, $condition=NULL)
     {
-        // Check conditiion
-        $query = ($condition) 
-            ? $this->_findByCondition($condition)
-            : $this->db;
+        // Model Condition
+        $query = $this->_findByCondition($condition);
 
         $this->_attrEventBeforeUpdate($attributes);
 
@@ -327,10 +325,10 @@ class BaseModel extends CI_Model
      */
     public function delete($condition=NULL, $forceDelete=false, $attributes=[])
     {
-        // Check conditiion
-        $query = ($condition) 
-            ? $this->_findByCondition($condition)
-            : $this->db;
+        // Model Condition by $forceDelete switch
+        $query = ($forceDelete)
+            ? $this->withTrashed()->_findByCondition($condition)
+            : $this->_findByCondition($condition);
 
         /* Soft Delete Mode */
         if (static::SOFT_DELETED 
@@ -361,7 +359,7 @@ class BaseModel extends CI_Model
      *  $this->Model->forceDelete(123)
      * @example
      *  // Query builder ORM usage
-     *  $this->Model->find()->where('id', 123);
+     *  $this->Model->withTrashed()->find()->where('id', 123);
      *  $this->Model->forceDelete();
      */
     public function forceDelete($condition=NULL)
@@ -384,10 +382,8 @@ class BaseModel extends CI_Model
      */
     public function restore($condition=NULL)
     {
-        // Check conditiion
-        $query = ($condition) 
-            ? $this->_findByCondition($condition)
-            : $this->db;
+        // Model Condition with Trashed
+        $query = $this->withTrashed()->_findByCondition($condition);
 
         /* Soft Delete Mode */
         if (static::SOFT_DELETED 
@@ -500,9 +496,10 @@ class BaseModel extends CI_Model
     }
 
     /**
-     * Finds record(s) by the given condition.
+     * Finds record(s) by the given condition with a fresh query.
      *
-     * This method is internally called by findOne() etc..
+     * This method is internally called by findOne(), findAll(), update(), delete(), etc.
+     * The query will be reset to start a new scope if the condition is used.
      * 
      * @param mixed Primary key value or a set of column values
      * @return object CI_DB_query_builder
@@ -517,8 +514,13 @@ class BaseModel extends CI_Model
      *  // find the first customer whose age is 30 and whose status is 1
      *  $this->_findByCondition(['age' => 30, 'status' => 1]);
      */
-    protected function _findByCondition($condition)
+    protected function _findByCondition($condition=NULL)
     {
+        // Reset Query if condition existed
+        if ($condition) {
+            $this->db->reset_query();
+        }
+
         $query = $this->find();
 
         // Check condition type
@@ -539,7 +541,7 @@ class BaseModel extends CI_Model
                 }
             }
         } 
-        else {
+        elseif (is_numeric($condition) || is_string($condition)) {
             /* Single Primary Key */
             $query->where($this->_field($this->primaryKey), $condition);
         }
