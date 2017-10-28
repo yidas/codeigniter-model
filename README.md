@@ -23,6 +23,10 @@ OUTLINE
 
 * [Usage](#usage)
 
+* [SOFT DELETED](#soft-deleted)
+
+* [QUERY SCOPES](#query-scopes)
+
 ---
 
 DEMONSTRATION
@@ -189,6 +193,13 @@ $result = $this->Model->delete();
 $this->Model->delete(123, true);
 ```
 
+
+---
+
+SOFT DELETED
+------------
+
+
 ### forceDelete()
 
 Force Delete the selected record(s) with Timestamps feature into the associated database table.
@@ -226,6 +237,13 @@ Without SOFT_DELETED filter(condition) for next find()
 $this->Model->withTrashed()->find();
 ```
 
+
+---
+
+QUERY SCOPES
+------------
+
+
 ### withoutGlobalScopes()
 
 Without Global Scopes filter(condition) for next find()
@@ -241,14 +259,3 @@ Without all Model filter(condition) for next find()
 ```php
 $this->Model->withAll()->find();
 ```
-
-
----
-
-SOFT DELETED
-------------
-
----
-
-QUERY SCOPES
-------------
