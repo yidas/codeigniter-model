@@ -88,16 +88,27 @@ Create an CI Query Builder instance with Model Filters for query purpose.
 
 ```php
 $posts = $this->PostModel->find()
-  ->where('is_public', '1')
-  ->limit(0,25)
-  ->order_by('id')
-  ->get()
-  ->result_array();
+    ->where('is_public', '1')
+    ->limit(0,25)
+    ->order_by('id')
+    ->get()
+    ->result_array();
+```
+
+```php
+// Without all featured conditions for next find()
+$posts = $this->PostModel->find(true)
+    ->where('is_deleted', '1')
+    ->get()
+    ->result_array();
+    
+// This is equal to withAll() method
+$this->PostModel->withAll()->find();
 ```
 
 ### findOne()
 
-Returns a single record array by a primary key or an array of column values with Model Filters.
+Return a single record array by a primary key or an array of column values with Model Filters.
 
 ```php
 $post = $this->PostModel->findOne(123);
@@ -105,7 +116,7 @@ $post = $this->PostModel->findOne(123);
 
 ### findAll()
 
-Returns a list of records that match the specified primary key value(s) or a set of column values with Model Filters.
+Return a list of records that match the specified primary key value(s) or a set of column values with Model Filters.
 
 ```php
 $post = $this->PostModel->findAll([3,21,135]);
@@ -113,41 +124,83 @@ $post = $this->PostModel->findAll([3,21,135]);
 
 ### insert()
 
-Inserts a row with Timestamps feature into the associated database table using the attribute values of this record.
+Insert a row with Timestamps feature into the associated database table using the attribute values of this record.
 
 ```php
 $result = $this->Model->insert([
-  'name' => 'Nick Tsai',
-  'email' => 'myintaer@gmail.com',
+    'name' => 'Nick Tsai',
+    'email' => 'myintaer@gmail.com',
+]);
+```
+
+### batchInsert()
+
+Insert a batch of rows with Timestamps feature into the associated database table using the attribute values of this record.
+
+```php
+$result = $this->Model->batchInsert([
+     ['name' => 'Nick Tsai', 'email' => 'myintaer@gmail.com'],
+     ['name' => 'Yidas', 'email' => 'service@yidas.com']
+]);
+```
+
+### replace()
+
+Replace a row with Timestamps feature into the associated database table using the attribute values of this record.
+
+```php
+$result = $this->Model->replace([
+    'id' => 1,
+    'name' => 'Nick Tsai',
+    'email' => 'myintaer@gmail.com',
 ]);
 ```
 
 ### update()
 
-Saves the changes with Timestamps feature to the selected record(s) into the associated database table.
+Save the changes with Timestamps feature to the selected record(s) into the associated database table.
 
 ```php
 $result = $this->Model->update(['status'=>'off'], 123)
 ```
-Query builder ORM usage:
 
 ```php
+// Query builder ORM usage
 $this->Model->find()->where('id', 123);
 $result = $this->Model->update(['status'=>'off']);
 ```
 
 ### delete()
 
-Deletes the selected record(s) with Timestamps feature into the associated database table.
+Delete the selected record(s) with Timestamps feature into the associated database table.
 
 ```php
 $result = $this->Model->delete(123)
 ```
-Query builder ORM usage:
 
 ```php
+// Query builder ORM usage
 $this->Model->find()->where('id', 123);
 $result = $this->Model->delete();
+```
+
+```php
+// Force delete for SOFT_DELETED mode 
+$this->Model->delete(123, true);
+```
+
+### forceDelete()
+
+Delete the selected record(s) with Timestamps feature into the associated database table.
+
+```php
+$result = $this->Model->forceDelete(123)
+```
+
+```php
+// Query builder ORM usage
+$this->Model->find()->where('id', 123);
+$result = $this->Model->forceDelete();
 ```
 
 ---
