@@ -23,9 +23,9 @@ OUTLINE
 
 * [Usage](#usage)
 
-* [SOFT DELETED](#soft-deleted)
+* [Soft Deleted](#soft-deleted)
 
-* [QUERY SCOPES](#query-scopes)
+* [Query Scopes](#query-scopes)
 
 ---
 
