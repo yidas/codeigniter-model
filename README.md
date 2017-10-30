@@ -24,9 +24,13 @@ OUTLINE
 * [Usage](#usage)
 
 * [Soft Deleted](#soft-deleted)
+  - [Configuration](#configuration-1)
+  - [Usage](#usage-1)
 
 * [Query Scopes](#query-scopes)
-
+  - [Configuration](#configuration-2)
+  - [Usage](#usage-2)
+  
 ---
 
 DEMONSTRATION
@@ -34,7 +38,7 @@ DEMONSTRATION
 
 ### Find one
 ```php
-$post = $this->PostModel->findOne(123)
+$post = $this->PostModel->findOne(123);
 ```
 
 ### Find with Query Builder
@@ -60,7 +64,7 @@ Check Codeigniter `application/config/config.php`:
 
     $config['composer_autoload'] = TRUE;
     
-> You could customize the vendor path for `$config['composer_autoload']`
+> You could customize the vendor path into `$config['composer_autoload']`
 
 ---
 
@@ -69,9 +73,27 @@ CONFIGURATION
 
 ### Extend BaseModel for Your Application Models
 
-You could extend the `BaseModel` for each model in your application, but we recommend you to make a My_model extended `BaseModel` for each model.
+You could extend the `BaseModel` for each model in your application:
 
-### Extend BaseModel for Your Application BaseModel
+```php
+class Post_model extends BaseModel
+{
+    protected $table = "post_table";
+    protected $primaryKey = 'sn';
+    // Configuration by Inheriting...
+}
+```
+
+The model is ready to use after extending `BaseModel` with basic configuration, :
+
+```php
+$this->load->model('Post_model');
+$post = $this->Post_model->findOne(123);
+```
+
+Instead of direct extending application models, we recommend you to make a My_model to extend `BaseModel` for each model.
+
+### Extend BaseModel for Your My_model in Application
 
 You could make My_model for each model in your application.
 
@@ -80,6 +102,23 @@ Example of [My_model](https://github.com/yidas/codeigniter-model/blob/master/exa
 >Based on BaseModel, My_model is customized for your web application with features, such as the verification of user ID and company ID for multiple user layers.
 >
 >This example My_model assumes that a user is belong to a company, so each data row is belong to a user with that company. The Model basic funcitons overrided BaseModel with user and company verification to implement the protection. 
+
+```php
+class My_model extends BaseModel
+{
+    protected $primaryKey = 'sn';
+    // Configuration by Inheriting...
+}
+```
+
+After building `My_model`, it's simple to create each model of application:
+
+```php
+class Post_model extends My_model
+{
+    protected $table = "post_table";
+}
+```
 
 ---
 
@@ -199,8 +238,40 @@ $this->Model->delete(123, true);
 SOFT DELETED
 ------------
 
+In addition to actually removing records from your database, This Model can also "soft delete" models. When models are soft deleted, they are not actually removed from your database. Instead, a `deleted_at` attribute could be set on the model and inserted into the database.
 
-### forceDelete()
+### Configuration
+
+You could enable SOFT DELETED feature by giving field name to `SOFT_DELETED`, the settings are below:
+
+- SOFT_DELETED: Feild name for SOFT_DELETED, empty is disabled.
+
+- $softDeletedFalseValue: The actived value for SOFT_DELETED
+
+- $softDeletedTrueValue: The deleted value for SOFT_DELETED
+
+- DELETED_AT: (Optional) Feild name for deleted_at, empty is disabled.
+
+```php
+class My_model extends BaseModel
+{
+    const SOFT_DELETED = 'is_deleted';
+
+    protected $softDeletedFalseValue = '0';
+
+    protected $softDeletedTrueValue = '1';
+
+    const DELETED_AT = 'deleted_at';
+    
+    // Other settings...
+```
+
+
+---
+
+### Usage
+
+#### forceDelete()
 
 Force Delete the selected record(s) with Timestamps feature into the associated database table.
 
@@ -215,7 +286,7 @@ $result = $this->Model->forceDelete();
 ```
 
 
-### restore()
+#### restore()
 
 Restore SOFT_DELETED field value to the selected record(s) into the associated database table..
 
@@ -229,9 +300,9 @@ $this->Model->withTrashed()->find()->where('id', 123);
 $this->Model->restore();
 ```
 
-### withTrashed()
+#### withTrashed()
 
-Without SOFT_DELETED filter(condition) for next find()
+Without SOFT_DELETED query conditions for next find()
 
 ```php
 $this->Model->withTrashed()->find();
@@ -243,18 +314,49 @@ $this->Model->withTrashed()->find();
 QUERY SCOPES
 ------------
 
+Query scopes allow you to add constraints to all queries for a given model. Writing your own global scopes can provide a convenient, easy way to make sure every query for a given model receives certain constraints. The [SOFT DELETED](#soft-deleted) scope is a own scope which is not includes in global scope.
 
-### withoutGlobalScopes()
+### Configuration
 
-Without Global Scopes filter(condition) for next find()
+You could override `_globalScopes` method to define your constraints:
+
+```php
+class My_model extends BaseModel
+{
+    protected $userAttribute = 'uid';
+    
+    /**
+     * Override _globalScopes with User validation
+     */
+    protected function _globalScopes()
+    {
+        $this->db->where(
+            $this->_field($this->userAttribute), 
+            $this->config->item('user_id')
+            );
+        return parent::_globalScopes();
+    }
+```
+
+After overriding that, the `My_model` will constrain that scope in every query from `find()`, unless you remove the query scope before a find query likes `withoutGlobalScopes()`.
+
+---
+
+### Usage
+
+#### withoutGlobalScopes()
+
+Without Global Scopes query conditions for next find()
 
 ```php
 $this->Model->withoutGlobalScopes()->find();
 ```
 
-### withAll()
+#### withAll()
 
-Without all Model filter(condition) for next find()
+Without all query conditions for next find()
+
+That is, with all set of Models for next find()
 
 ```php
 $this->Model->withAll()->find();

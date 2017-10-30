@@ -4,7 +4,7 @@
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  0.14.0
+ * @version  0.14.1
  * @see      https://github.com/yidas/codeigniter-model
  */
 class BaseModel extends CI_Model
@@ -48,7 +48,7 @@ class BaseModel extends CI_Model
     protected $dateFormat = 'unixtime';
 
     /**
-     * @var string Feild name for record_status, empty is disabled.
+     * @var string Feild name for SOFT_DELETED, empty is disabled.
      */
     const SOFT_DELETED = '';
 
@@ -401,7 +401,7 @@ class BaseModel extends CI_Model
     }
 
     /**
-     * Without SOFT_DELETED filter(condition) for next find()
+     * Without SOFT_DELETED query conditions for next find()
      *
      * @return object Self
      * @example 
@@ -415,7 +415,7 @@ class BaseModel extends CI_Model
     }
 
     /**
-     * Without Global Scopes filter(condition) for next find()
+     * Without Global Scopes query conditions for next find()
      *
      * @return object Self
      * @example 
@@ -429,7 +429,8 @@ class BaseModel extends CI_Model
     }
 
     /**
-     * Without all Model filter(condition) for next find()
+     * Without all query conditions for next find()
+     * That is, with all set of Models for next find()
      *
      * @return object Self
      * @example 
@@ -627,6 +628,3 @@ class BaseModel extends CI_Model
         return "{$this->table}.{$columnName}";
     }
 }
-
-
-
