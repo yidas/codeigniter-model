@@ -11,7 +11,7 @@
  *
  * @author   Nick Tsai <myintaer@gmail.com>
  * @see      https://github.com/yidas/codeigniter-model
- * @since    BaseMdoel 0.12.0
+ * @since    BaseMdoel 0.15.0
  */
 class My_model extends BaseModel
 {
@@ -95,7 +95,7 @@ class My_model extends BaseModel
     {
         if ($this->companyAttribute) {
             
-            $this->db->where(
+            $this->_dbr->where(
                 $this->_field($this->companyAttribute), 
                 $this->$companyID
                 );
@@ -103,7 +103,7 @@ class My_model extends BaseModel
         
         if ($this->userAttribute) {
             
-            $this->db->where(
+            $this->_dbr->where(
                 $this->_field($this->userAttribute), 
                 $this->userID
                 );
@@ -129,7 +129,10 @@ class My_model extends BaseModel
             $attributes[$this->userAttribute] = $this->userSN;
         }
 
-        $attributes[$this->createdUserAttribute] = $this->userSN;
+        // Auto created_by
+        if ($this->createdUserAttribute) {
+            $attributes[$this->createdUserAttribute] = $this->userSN;
+        }
         
         return parent::_attrEventBeforeInsert($attributes);
     }
@@ -139,7 +142,10 @@ class My_model extends BaseModel
      */
     public function _attrEventBeforeUpdate(&$attributes)
     {
-        $attributes[$this->updatedUserAttribute] = $this->userSN;
+        // Auto updated_by
+        if ($this->updatedUserAttribute) {
+            $attributes[$this->updatedUserAttribute] = $this->userSN;
+        }
 
         return parent::_attrEventBeforeUpdate($attributes);
     }
@@ -149,7 +155,10 @@ class My_model extends BaseModel
      */
     public function _attrEventBeforeDelete(&$attributes)
     {
-        $attributes[$this->deletedUserAttribute] = $this->userSN;
+        // Auto deleted_by
+        if ($this->deletedUserAttribute) {
+            $attributes[$this->deletedUserAttribute] = $this->userSN;
+        }
 
         return parent::_attrEventBeforeDelete($attributes);
     }

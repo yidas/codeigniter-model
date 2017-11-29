@@ -209,7 +209,7 @@ $result = $this->Model->update(['status'=>'off'], 123)
 
 ```php
 // Query builder ORM usage
-$this->Model->find()->where('id', 123);
+$this->Model->getDB()->where('id', 123);
 $result = $this->Model->update(['status'=>'off']);
 ```
 
@@ -223,7 +223,7 @@ $result = $this->Model->delete(123)
 
 ```php
 // Query builder ORM usage
-$this->Model->find()->where('id', 123);
+$this->Model->getDB()->where('id', 123);
 $result = $this->Model->delete();
 ```
 

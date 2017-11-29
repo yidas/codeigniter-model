@@ -4,11 +4,19 @@
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  0.14.1
+ * @version  0.15.0
  * @see      https://github.com/yidas/codeigniter-model
  */
 class BaseModel extends CI_Model
 {
+    /**
+     * Database Configuration for read-write master
+     * 
+     * @todo Replication and Read-Write Splitting enabled while $databaseRead is set 
+     * @var object|string|array CI DB ($this->db as default), CI specific group name or CI database config array
+     */
+    protected $database = "";
+    
     /**
      * Table name
      *
@@ -19,7 +27,7 @@ class BaseModel extends CI_Model
     /**
      * Primary key of table
      *
-     * @var string 
+     * @var string Field name of single column primary key
      */
     protected $primaryKey = '';
 
@@ -79,6 +87,11 @@ class BaseModel extends CI_Model
     public $validator = '\GUMP';
 
     /**
+     * @var object database connection for write
+     */
+    protected $_db;
+
+    /**
      * @var array Validation errors (depends on validator driver)
      */
     private $_errors;
@@ -92,6 +105,44 @@ class BaseModel extends CI_Model
      * @var bool Global Scope one time switch
      */
     private $_withoutGlobalScope = false;
+
+    /**
+     * Constructor
+     */
+    function __construct()
+    {
+        /* Database Connection Setting */
+        if ($this->database) {
+            if (is_object($this->database)) {
+                // CI DB Connection
+                $this->_db = $this->database;
+            } else {
+                // CI Database Configuration
+                $this->_db = $this->load->database($this->database, true);
+            }
+        } else {
+            // CI Default DB Connection
+            $this->_db = $this->db; // No need to set as reference because $this->db is refered to &DB already.
+        }
+    }
+
+    /**
+     * Get Master Database Connection
+     * 
+     * @return object CI &DB
+     */
+    public function getDatabase()
+    {
+        return $this->_db;
+    }
+
+    /**
+     * Alias of getDatabase()
+     */
+    public function getDB()
+    {
+        return $this->getDatabase();
+    }
 
     /**
      * Get table name
@@ -166,7 +217,7 @@ class BaseModel extends CI_Model
      */
     public function find($withAll=false)
     {
-        $this->db
+        $this->_db
             ->from($this->table);
 
         // WithAll helper
@@ -180,7 +231,7 @@ class BaseModel extends CI_Model
         // Soft Deleted condition
         $this->_addSoftDeletedCondition();
 
-        return $this->db;
+        return $this->_db;
     }
 
     /**
@@ -238,7 +289,7 @@ class BaseModel extends CI_Model
     {
         $this->_attrEventBeforeInsert($attributes);
 
-        return $this->db->insert($this->table, $attributes);
+        return $this->_db->insert($this->table, $attributes);
     }
 
     /**
@@ -259,7 +310,7 @@ class BaseModel extends CI_Model
             $this->_attrEventBeforeInsert($attributes);
         }
 
-        return $this->db->insert_batch($this->table, $data);
+        return $this->_db->insert_batch($this->table, $data);
     }
 
     /**
@@ -278,7 +329,7 @@ class BaseModel extends CI_Model
     {
         $this->_attrEventBeforeInsert($attributes);
 
-        return $this->db->replace($this->table, $attributes);
+        return $this->_db->replace($this->table, $attributes);
     }
 
     /**
@@ -292,7 +343,7 @@ class BaseModel extends CI_Model
      *  $this->Model->update(['status'=>'off'], 123)
      * @example
      *  // Query builder ORM usage
-     *  $this->Model->find()->where('id', 123);
+     *  $this->Model->getDB()->where('id', 123);
      *  $this->Model->update(['status'=>'off']);
      */
     public function update($attributes, $condition=NULL)
@@ -317,7 +368,7 @@ class BaseModel extends CI_Model
      *  $this->Model->delete(123);
      * @example
      *  // Query builder ORM usage
-     *  $this->Model->find()->where('id', 123);
+     *  $this->Model->getDB()->where('id', 123);
      *  $this->Model->delete();
      * @example  
      *  // Force delete for SOFT_DELETED mode 
@@ -359,7 +410,7 @@ class BaseModel extends CI_Model
      *  $this->Model->forceDelete(123)
      * @example
      *  // Query builder ORM usage
-     *  $this->Model->withTrashed()->find()->where('id', 123);
+     *  $this->Model->getDB()->where('id', 123);
      *  $this->Model->forceDelete();
      */
     public function forceDelete($condition=NULL)
@@ -519,7 +570,7 @@ class BaseModel extends CI_Model
     {
         // Reset Query if condition existed
         if ($condition) {
-            $this->db->reset_query();
+            $this->_db->reset_query();
         }
 
         $query = $this->find();
@@ -588,7 +639,7 @@ class BaseModel extends CI_Model
             && static::SOFT_DELETED 
             && isset($this->softDeletedFalseValue)) {
             
-            $this->db->where($this->_field(static::SOFT_DELETED), 
+            $this->_db->where($this->_field(static::SOFT_DELETED), 
                 $this->softDeletedFalseValue);
 
             // Reset SOFT_DELETED switch
