@@ -122,6 +122,70 @@ class Post_model extends My_model
 
 ---
 
+Defining Models
+---------------
+
+To get started, let's create an model extends `BaseModel` or through `My_model`, then define each model suitably.
+
+### Table Names
+
+You may specify a custom table by defining a table property on your model:
+
+```php
+class Post_model extends BaseModel
+{
+    protected $table = "post_table";
+}
+```
+
+### Primary Keys
+
+You may define a protected $primaryKey property to override this convention.
+
+```php
+class Post_model extends BaseModel
+{
+    protected $primaryKey = "id";
+}
+```
+
+### Timestamps
+
+By default, BaseModel expects `created_at` and `updated_at` columns to exist on your tables. If you do not wish to have these columns automatically managed by BaseModel, set the `$timestamps` property on your model to false:
+
+```php
+class Post_model extends BaseModel
+{
+    protected $timestamps = false;
+}
+```
+
+If you need to customize the format of your timestamps, set the `$dateFormat` property on your model. This property determines how date attributes are stored in the database:
+
+```php
+class Post_model extends BaseModel
+{
+    /**
+     * Date format for timestamps.
+     *
+     * @var string unixtime(946684800)|datetime(2000-01-01 00:00:00)
+     */
+    protected $dateFormat = 'datetime';
+}
+```
+
+If you need to customize the names of the columns used to store the timestamps, you may set the `CREATED_AT` and `UPDATED_AT` constants in your model:
+
+```php
+class Post_model extends BaseModel
+{
+    const CREATED_AT = 'creation_date';
+    const UPDATED_AT = 'last_update';
+}
+```
+
+---
+
 USAGE
 -----
 
