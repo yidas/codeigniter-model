@@ -21,7 +21,16 @@ OUTLINE
 
 * [Configuration](#configuration)
 
+* [Defining Models](#defining-models)
+  - [Table Names](#table-names)
+  - [Primary Keys](#primary-keys)
+  - [Timestamps](#timestamps)
+
 * [Usage](#usage)
+  - [find()](#find)
+  - [insert()](#insert)
+  - [update()](#update)
+  - [delete()](#delete)
 
 * [Soft Deleted](#soft-deleted)
   - [Configuration](#configuration-1)
