@@ -62,3 +62,18 @@ class Post_model extends My_model
 
 ### Transaction Log
 
+Likes Timestamps feature, you may need to record transaction Log for each row. By default, This example `My_model` expects `created_by` , `updated_by` and `deleted_by` columns to exist on your tables. If you do not wish to have these columns automatically managed by `My_model`, set each property on your model to `NULL`:
+
+```php
+class Post_model extends My_model
+{
+    protected $createdUserAttribute = 'created_by';
+    
+    protected $updatedUserAttribute = 'updated_by';
+    
+    protected $deletedUserAttribute = NULL;
+}
+```
+
+
+
