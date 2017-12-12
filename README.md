@@ -160,7 +160,7 @@ class Post_model extends BaseModel
 
 ### Timestamps
 
-By default, BaseModel expects `created_at` and `updated_at` columns to exist on your tables. If you do not wish to have these columns automatically managed by BaseModel, set the `$timestamps` property on your model to false:
+By default, BaseModel expects `created_at` and `updated_at` columns to exist on your tables. If you do not wish to have these columns automatically managed by BaseModel, set the `$timestamps` property on your model to `false`:
 
 ```php
 class Post_model extends BaseModel
@@ -315,30 +315,40 @@ In addition to actually removing records from your database, This Model can also
 
 ### Configuration
 
-You could enable SOFT DELETED feature by giving field name to `SOFT_DELETED`, the settings are below:
-
-- SOFT_DELETED: Feild name for SOFT_DELETED, empty is disabled.
-
-- $softDeletedFalseValue: The actived value for SOFT_DELETED
-
-- $softDeletedTrueValue: The deleted value for SOFT_DELETED
-
-- DELETED_AT: (Optional) Feild name for deleted_at, empty is disabled.
+You could enable SOFT DELETED feature by giving field name to `SOFT_DELETED`:
 
 ```php
 class My_model extends BaseModel
 {
     const SOFT_DELETED = 'is_deleted';
+}
+```
 
+While `SOFT_DELETED` is enabled, you could set `$softDeletedFalseValue` and `$softDeletedTrueValue` for fitting table schema. Futher, you may set `DELETED_AT` with column name for Timestapes feature, or disabled by setting to `NULL` by default:
+
+```php
+class My_model extends BaseModel
+{
+    const SOFT_DELETED = 'is_deleted';
+    
+    // The actived value for SOFT_DELETED
     protected $softDeletedFalseValue = '0';
-
+    
+    // The deleted value for SOFT_DELETED
     protected $softDeletedTrueValue = '1';
 
     const DELETED_AT = 'deleted_at';
-    
-    // Other settings...
+}
 ```
 
+If you need to disabled SOFT DELETED feature for specified model, you may set `SOFT_DELETED` to `false`, which would disable any SOFT DELETED functions including `DELETED_AT` feature:
+
+```php
+class My_model extends BaseModel
+{
+    const SOFT_DELETED = false;
+}
+```
 
 ---
 
