@@ -4,7 +4,7 @@
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  0.15.0
+ * @version  0.16.0
  * @see      https://github.com/yidas/codeigniter-model
  */
 class BaseModel extends CI_Model
@@ -12,10 +12,16 @@ class BaseModel extends CI_Model
     /**
      * Database Configuration for read-write master
      * 
-     * @todo Replication and Read-Write Splitting enabled while $databaseRead is set 
      * @var object|string|array CI DB ($this->db as default), CI specific group name or CI database config array
      */
     protected $database = "";
+
+    /**
+     * Database Configuration for read-only slave
+     * 
+     * @var object|string|array CI DB ($this->db as default), CI specific group name or CI database config array
+     */
+    protected $databaseRead = "";
     
     /**
      * Table name
@@ -92,6 +98,11 @@ class BaseModel extends CI_Model
     protected $_db;
 
     /**
+     * @var object database connection for read (Salve)
+     */
+    protected $_dbr;
+
+    /**
      * @var array Validation errors (depends on validator driver)
      */
     private $_errors;
@@ -112,6 +123,7 @@ class BaseModel extends CI_Model
     function __construct()
     {
         /* Database Connection Setting */
+        // Master
         if ($this->database) {
             if (is_object($this->database)) {
                 // CI DB Connection
@@ -123,6 +135,19 @@ class BaseModel extends CI_Model
         } else {
             // CI Default DB Connection
             $this->_db = $this->db; // No need to set as reference because $this->db is refered to &DB already.
+        }
+        // Slave
+        if ($this->databaseRead) {
+            if (is_object($this->databaseRead)) {
+                // CI DB Connection
+                $this->_dbr = $this->databaseRead;
+            } else {
+                // CI Database Configuration
+                $this->_dbr = $this->load->database($this->databaseRead, true);
+            }
+        } else {
+            // CI Default DB Connection
+            $this->_dbr = $this->db; // No need to set as reference because $this->db is refered to &DB already.
         }
     }
 
@@ -137,11 +162,29 @@ class BaseModel extends CI_Model
     }
 
     /**
+     * Get Slave Database Connection
+     * 
+     * @return object CI &DB
+     */
+    public function getDatabaseRead()
+    {
+        return $this->_dbr;
+    }
+
+    /**
      * Alias of getDatabase()
      */
     public function getDB()
     {
         return $this->getDatabase();
+    }
+
+    /**
+     * Alias of getDatabaseRead()
+     */
+    public function getDBR()
+    {
+        return $this->getDatabaseRead();
     }
 
     /**
@@ -217,7 +260,7 @@ class BaseModel extends CI_Model
      */
     public function find($withAll=false)
     {
-        $this->_db
+        $this->_dbr
             ->from($this->table);
 
         // WithAll helper
@@ -231,7 +274,7 @@ class BaseModel extends CI_Model
         // Soft Deleted condition
         $this->_addSoftDeletedCondition();
 
-        return $this->_db;
+        return $this->_dbr;
     }
 
     /**
@@ -351,9 +394,13 @@ class BaseModel extends CI_Model
         // Model Condition
         $query = $this->_findByCondition($condition);
 
-        $this->_attrEventBeforeUpdate($attributes);
+        $attributes = $this->_attrEventBeforeUpdate($attributes);
 
-        return $query->update($this->table, $attributes);
+        // Pack query then move it to write DB from read DB
+        $sql = $this->_dbr->set($attributes)->get_compiled_update();
+        $this->_dbr->reset_query();
+
+        return $this->_db->query($sql);
     }
 
     /**
@@ -362,7 +409,7 @@ class BaseModel extends CI_Model
      * @param mixed $condition Refer to _findByCondition() for the explanation 
      * @param boolean $forceDelete Force to hard delete
      * @param array $attributes Extended attributes for Soft Delete Mode
-     * @return mixed CI delete result of DB Query Builder
+     * @return bool Result
      *
      * @example    
      *  $this->Model->delete(123);
@@ -389,15 +436,21 @@ class BaseModel extends CI_Model
             // Mark the records as deleted
             $attributes[static::SOFT_DELETED] = $this->softDeletedTrueValue;
 
-            $this->_attrEventBeforeDelete($attributes);
+            $attributes = $this->_attrEventBeforeDelete($attributes);
 
-            return $query->update($this->table, $attributes);
+            // Pack query then move it to write DB from read DB
+            $sql = $this->_dbr->set($attributes)->get_compiled_update();
+            $this->_dbr->reset_query();
 
         } else {
 
-            // Hard delete
-            return $query->delete($this->table);
+            /* Hard Delete */
+            // Pack query then move it to write DB from read DB
+            $sql = $this->_dbr->get_compiled_delete();
+            $this->_dbr->reset_query();
         }
+        
+        return $this->_db->query($sql);
     }
 
     /**
@@ -512,39 +565,39 @@ class BaseModel extends CI_Model
      * Attributes handle function for each Insert
      *
      * @param array $attributes
-     * @return bool Result
+     * @return array Addon $attributes of pointer
      */
     protected function _attrEventBeforeInsert(&$attributes)
     {
         $this->_dateFormat(static::CREATED_AT, $attributes);
 
-        return true;
+        return $attributes;
     }
 
     /**
      * Attributes handle function for Update
      *
      * @param array $attributes
-     * @return bool Result
+     * @return array Addon $attributes of pointer
      */
     protected function _attrEventBeforeUpdate(&$attributes)
     {
         $this->_dateFormat(static::UPDATED_AT, $attributes);
 
-        return true;
+        return $attributes;
     }
 
     /**
      * Attributes handle function for Delete
      *
      * @param array $attributes
-     * @return bool Result
+     * @return array Addon $attributes of pointer
      */
     protected function _attrEventBeforeDelete(&$attributes)
     {
         $this->_dateFormat(static::DELETED_AT, $attributes);
 
-        return true;
+        return $attributes;
     }
 
     /**
@@ -606,7 +659,7 @@ class BaseModel extends CI_Model
      *
      * @param string Field name
      * @param array Attributes
-     * @return Time format
+     * @return array Addon $attributes of pointer
      */
     protected function _dateFormat($field, &$attributes)
     {
@@ -625,6 +678,8 @@ class BaseModel extends CI_Model
             
             $attributes[$field] = $dateFormat;
         }
+
+        return $attributes;
     }
 
     /**
