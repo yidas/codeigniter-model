@@ -16,6 +16,9 @@
 class My_model extends BaseModel
 {
     /* Configuration by Inheriting */
+    
+    // Fill up with your DB key of Slave Databases if needed
+    protected $databaseRead = false;
 
     // The regular PK Key in App
     protected $primaryKey = 'id';
@@ -84,8 +87,19 @@ class My_model extends BaseModel
         parent::__construct();
 
         // Assgin UserID and CompanyID from your own App mechanism
-        $this->companyID = $this->config->item('sessionCompanyID');
-        $this->userID = $this->config->item('sessionUserID');
+        $this->loadACL();
+    }
+    
+    /**
+     * Load ACL from application
+     * 
+     * @param int $companyID
+     * @param int $userID
+     */
+    public function loadACL($companyID=NULL, $userID=NULL)
+    {
+        $this->companyID = ($companyID) ? $companyID : $this->config->item('sessionCompanyID');
+        $this->userID = ($userID) ? $userID : $this->config->item('sessionUserID');
     }
 
     /**
@@ -95,7 +109,7 @@ class My_model extends BaseModel
     {
         if ($this->companyAttribute) {
             
-            $this->_dbr->where(
+            $this->getBuilder()->where(
                 $this->_field($this->companyAttribute), 
                 $this->$companyID
                 );
@@ -103,7 +117,7 @@ class My_model extends BaseModel
         
         if ($this->userAttribute) {
             
-            $this->_dbr->where(
+            $this->getBuilder()->where(
                 $this->_field($this->userAttribute), 
                 $this->userID
                 );

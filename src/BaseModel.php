@@ -4,7 +4,7 @@
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  0.16.0
+ * @version  1.0.0
  * @see      https://github.com/yidas/codeigniter-model
  */
 class BaseModel extends CI_Model
@@ -103,6 +103,16 @@ class BaseModel extends CI_Model
     protected $_dbr;
 
     /**
+     * @var object database caches by database key for write
+     */
+    protected static $_dbCaches = [];
+    
+    /**
+     * @var object database caches by database key for read (Salve)
+     */
+    protected static $_dbrCaches = [];
+
+    /**
      * @var array Validation errors (depends on validator driver)
      */
     private $_errors;
@@ -128,8 +138,19 @@ class BaseModel extends CI_Model
             if (is_object($this->database)) {
                 // CI DB Connection
                 $this->_db = $this->database;
-            } else {
-                // CI Database Configuration
+            } 
+            elseif (is_string($this->database)) {
+                // Cache Mechanism
+                if (isset(self::$_dbCaches[$this->database])) {
+                    $this->_db = self::$_dbCaches[$this->database];
+                } else {
+                    // CI Database Configuration
+                    $this->_db = $this->load->database($this->database, true);
+                    self::$_dbCaches[$this->database] = $this->_db;
+                }
+            }
+            else {
+                // Config array for each Model
                 $this->_db = $this->load->database($this->database, true);
             }
         } else {
@@ -141,8 +162,19 @@ class BaseModel extends CI_Model
             if (is_object($this->databaseRead)) {
                 // CI DB Connection
                 $this->_dbr = $this->databaseRead;
-            } else {
-                // CI Database Configuration
+            } 
+            elseif (is_string($this->databaseRead)) {
+                // Cache Mechanism
+                if (isset(self::$_dbrCaches[$this->databaseRead])) {
+                    $this->_dbr = self::$_dbrCaches[$this->databaseRead];
+                } else {
+                    // CI Database Configuration
+                    $this->_dbr = $this->load->database($this->databaseRead, true);
+                    self::$_dbrCaches[$this->databaseRead] = $this->_dbr;
+                }
+            }
+            else {
+                // Config array for each Model
                 $this->_dbr = $this->load->database($this->databaseRead, true);
             }
         } else {
@@ -183,6 +215,14 @@ class BaseModel extends CI_Model
      * Alias of getDatabaseRead()
      */
     public function getDBR()
+    {
+        return $this->getDatabaseRead();
+    }
+
+    /**
+     * Alias of getDatabaseRead()
+     */
+    public function getBuilder()
     {
         return $this->getDatabaseRead();
     }
@@ -611,7 +651,7 @@ class BaseModel extends CI_Model
      * @internal
      * @example 
      *  // find a single customer whose primary key value is 10
-     *  $this->_findByCondition(['id' => 10]);
+     *  $this->_findByCondition(10);
      *
      *  // find the customers whose primary key value is 10, 11 or 12.
      *  $this->_findByCondition([10, 11, 12]);
@@ -623,7 +663,7 @@ class BaseModel extends CI_Model
     {
         // Reset Query if condition existed
         if ($condition) {
-            $this->_db->reset_query();
+            $this->_dbr->reset_query();
         }
 
         $query = $this->find();
@@ -694,7 +734,7 @@ class BaseModel extends CI_Model
             && static::SOFT_DELETED 
             && isset($this->softDeletedFalseValue)) {
             
-            $this->_db->where($this->_field(static::SOFT_DELETED), 
+            $this->_dbr->where($this->_field(static::SOFT_DELETED), 
                 $this->softDeletedFalseValue);
 
             // Reset SOFT_DELETED switch
@@ -731,6 +771,6 @@ class BaseModel extends CI_Model
      */
     protected function _field($columnName)
     {
-        return "{$this->table}.{$columnName}";
+        return "`{$this->table}`.`{$columnName}`";
     }
 }
