@@ -241,13 +241,13 @@ $posts = $this->PostModel->find()
 ```
 
 ```php
-// Without all featured conditions for next find()
+// Without any scopes & conditions for this query
 $posts = $this->PostModel->find(true)
     ->where('is_deleted', '1')
     ->get()
     ->result_array();
     
-// This is equal to withAll() method
+// This is equal to find(true) method
 $this->PostModel->withAll()->find();
 ```
 
