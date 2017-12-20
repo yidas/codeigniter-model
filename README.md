@@ -86,7 +86,9 @@ Run Composer in your Codeigniter project under the folder `\application`:
     
 Check Codeigniter `application/config/config.php`:
 
-    $config['composer_autoload'] = TRUE;
+```php
+$config['composer_autoload'] = TRUE;
+```
     
 > You could customize the vendor path into `$config['composer_autoload']`
 
