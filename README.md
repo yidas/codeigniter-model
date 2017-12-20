@@ -80,7 +80,7 @@ $posts = $this->PostModel->find()
 INSTALLATION
 ------------
 
-Run Composer in your Codeigniter project:
+Run Composer in your Codeigniter project under the folder `\application`:
 
     composer require yidas/codeigniter-model
     
