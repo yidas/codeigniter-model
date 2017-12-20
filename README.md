@@ -6,7 +6,7 @@
     <br>
 </p>
 
-CodeIgniter 3 ORM BaseModel supported Read & Write Database Connections
+CodeIgniter 3 ORM Base Model supported Read & Write Database Connections
 
 [![Latest Stable Version](https://poser.pugx.org/yidas/codeigniter-model/v/stable?format=flat-square)](https://packagist.org/packages/yidas/codeigniter-model)
 [![Latest Unstable Version](https://poser.pugx.org/yidas/codeigniter-model/v/unstable?format=flat-square)](https://packagist.org/packages/yidas/codeigniter-model)
@@ -22,6 +22,8 @@ Features
 *3. **Timestamps Behavior** & **Soft Deleting** & **Query Scopes** support*
 
 *4. **Read & Write Splitting** for Replications*
+
+This package provide Base Model which extended `CI_Model` and provided full CRUD methods to make developing database interactions easier and quicker for your CodeIgniter applications.
 
 OUTLINE
 -------
@@ -62,6 +64,8 @@ DEMONSTRATION
 
 ### Find one
 ```php
+$this->load->model('post_model', 'PostModel');
+
 $post = $this->PostModel->findOne(123);
 ```
 
@@ -80,13 +84,15 @@ $posts = $this->PostModel->find()
 INSTALLATION
 ------------
 
-Run Composer in your Codeigniter project:
+Run Composer in your Codeigniter project under the folder `\application`:
 
     composer require yidas/codeigniter-model
     
 Check Codeigniter `application/config/config.php`:
 
-    $config['composer_autoload'] = TRUE;
+```php
+$config['composer_autoload'] = TRUE;
+```
     
 > You could customize the vendor path into `$config['composer_autoload']`
 
@@ -95,37 +101,21 @@ Check Codeigniter `application/config/config.php`:
 CONFIGURATION
 -------------
 
-After installation, `\BaseModel` class is ready to use.
-
-You could extend `BaseModel` for each Model or `My_Model` which defines common features in your application.
-
-### Extend BaseModel for Your Models
-
-Simply, you could extend the `BaseModel` for each model in your application:
+After installation, `\BaseModel` class is ready to use. Simply, you could create a model to extend the `BaseModel` directly:
 
 ```php
-class Post_model extends BaseModel
-{
-    protected $table = "post_table";
-    protected $primaryKey = 'sn';
-    // Configuration by Inheriting...
-}
+class Post_model extends BaseModel {}
 ```
 
-After extending `BaseModel` with basic configuration, the model is ready to use:
+After that, this model is ready to use for example: `$this->PostModel->findOne(123);`
 
-```php
-$this->load->model('Post_model');
-$post = $this->Post_model->findOne(123);
-```
+However, the schema of tables such as primary key in your applicaiton may not same as default, and it's annoying to defind repeated schema for each model. We recommend you to make `My_model` to extend `BaseModel` instead.
 
-Instead of direct extending application models, we recommend you to make `My_model` extended `BaseModel` for each model.
+### Use My_model to Extend BaseModel for every Models
 
-### Extend BaseModel for Your My_model in Application
+You could use `My_model` to extend `BaseModel`, then make each model to extend `My_model` in Codeigniter application.
 
-You could create `My_model` extended `BaseModel` for each model to extend in Codeigniter application.
-
-[My_model Example with Document](https://github.com/yidas/codeigniter-model/tree/master/example):
+*1. Create `My_model` extended `BaseModel` with configuration for fitting your common table schema:*
 
 ```php
 class My_model extends BaseModel
@@ -133,11 +123,11 @@ class My_model extends BaseModel
     protected $primaryKey = 'sn';
     const CREATED_AT = 'created_time';
     const UPDATED_AT = 'updated_time';
-    // Configuration for fitting your common table schema
+    // Customized Configurations for your app...
 }
 ```
 
-After building `My_model`, it's simple to create each model of application:
+*2. Create each Model extended `My_model` in application with its own table configuration:*
 
 ```php
 class Post_model extends My_model
@@ -145,6 +135,16 @@ class Post_model extends My_model
     protected $table = "post_table";
 }
 ```
+
+*3. Use each extended Model with library usages:*
+
+```php
+$this->load->model('post_model', 'PostModel');
+
+$post = $this->PostModel->findOne(123);
+```
+
+[My_model Example with Document](https://github.com/yidas/codeigniter-model/tree/master/example)
 
 ---
 
@@ -155,7 +155,7 @@ To get started, let's create an model extends `BaseModel` or through `My_model`,
 
 ### Table Names
 
-You may specify a custom table by defining a table property on your model:
+By convention, the "snake case" with lowercase excluded `_model` postfix of the class name will be used as the table name unless another name is explicitly specified. So, in this case, BaseModel will assume the `Posts_model` model stores records in the `posts` table. You may specify a custom table by defining a table property on your model:
 
 ```php
 class Post_model extends BaseModel
@@ -163,6 +163,18 @@ class Post_model extends BaseModel
     protected $table = "post_table";
 }
 ```
+
+#### Table Name Guessing Rule
+
+In our pattern, The naming between model class and table is the same, with supporting no matter singular or plural names:
+
+|Model Class Name|Table Name|
+|--|--|
+|Post_model|post|
+|Posts_model|posts|
+|User_info_model|user_info|
+
+
 
 ### Primary Keys
 
@@ -239,13 +251,13 @@ $posts = $this->PostModel->find()
 ```
 
 ```php
-// Without all featured conditions for next find()
+// Without any scopes & conditions for this query
 $posts = $this->PostModel->find(true)
     ->where('is_deleted', '1')
     ->get()
     ->result_array();
     
-// This is equal to withAll() method
+// This is equal to find(true) method
 $this->PostModel->withAll()->find();
 ```
 

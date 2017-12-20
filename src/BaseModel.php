@@ -4,7 +4,7 @@
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  1.0.0
+ * @version  1.1.0
  * @see      https://github.com/yidas/codeigniter-model
  */
 class BaseModel extends CI_Model
@@ -180,6 +180,11 @@ class BaseModel extends CI_Model
         } else {
             // CI Default DB Connection
             $this->_dbr = $this->db; // No need to set as reference because $this->db is refered to &DB already.
+        }
+        
+        /* Table Name Guessing */
+        if (!$this->table) {
+            $this->table = str_replace('_model', '', strtolower(get_called_class()));
         }
     }
 
