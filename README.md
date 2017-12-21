@@ -101,9 +101,7 @@ $config['composer_autoload'] = TRUE;
 CONFIGURATION
 -------------
 
-After installation, `\BaseModel` class is ready to use.
-
-Simply, you could create a model to extend the `BaseModel`:
+After installation, `\BaseModel` class is ready to use. Simply, you could create a model to extend the `BaseModel` directly:
 
 ```php
 class Post_model extends BaseModel
@@ -114,13 +112,11 @@ class Post_model extends BaseModel
 
 After that, this model is ready to use for example: `$this->PostModel->findOne(123);`
 
-However, Instead of directly extending models, we recommend you to make `My_model` extended `BaseModel` for each model.
+However, the schema of tables such as primary key in your applicaiton may not same as default, and it's annoying to defind repeated schema for each model. We recommend you to make `My_model` to extend `BaseModel` instead.
 
 ### Use My_model to Extend BaseModel for every Models
 
-You could use `My_model` to extend `BaseModel` for each model to extend again in Codeigniter application.
-
-[My_model Example with Document](https://github.com/yidas/codeigniter-model/tree/master/example):
+You could use `My_model` to extend `BaseModel`, then make each model to extend `My_model` in Codeigniter application.
 
 1. Create `My_model` extended `BaseModel` with configuration for fitting your common table schema:
 
@@ -150,6 +146,8 @@ $this->load->model('post_model', 'PostModel');
 
 $post = $this->PostModel->findOne(123);
 ```
+
+[My_model Example with Document](https://github.com/yidas/codeigniter-model/tree/master/example)
 
 ---
 
