@@ -118,7 +118,7 @@ However, the schema of tables such as primary key in your applicaiton may not sa
 
 You could use `My_model` to extend `BaseModel`, then make each model to extend `My_model` in Codeigniter application.
 
-1. Create `My_model` extended `BaseModel` with configuration for fitting your common table schema:
+*1. Create `My_model` extended `BaseModel` with configuration for fitting your common table schema:*
 
 ```php
 class My_model extends BaseModel
@@ -130,7 +130,7 @@ class My_model extends BaseModel
 }
 ```
 
-2. Create each Model extended `My_model` in application with its own table configuration:
+*2. Create each Model extended `My_model` in application with its own table configuration:*
 
 ```php
 class Post_model extends My_model
@@ -139,7 +139,7 @@ class Post_model extends My_model
 }
 ```
 
-3. Use each Model extended `My_model` with library usages:
+*3. Use each Model extended `My_model` with library usages:*
 
 ```php
 $this->load->model('post_model', 'PostModel');
