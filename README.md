@@ -6,7 +6,7 @@
     <br>
 </p>
 
-CodeIgniter 3 ORM BaseModel supported Read & Write Database Connections
+CodeIgniter 3 ORM Base Model supported Read & Write Database Connections
 
 [![Latest Stable Version](https://poser.pugx.org/yidas/codeigniter-model/v/stable?format=flat-square)](https://packagist.org/packages/yidas/codeigniter-model)
 [![Latest Unstable Version](https://poser.pugx.org/yidas/codeigniter-model/v/unstable?format=flat-square)](https://packagist.org/packages/yidas/codeigniter-model)
@@ -22,6 +22,8 @@ Features
 *3. **Timestamps Behavior** & **Soft Deleting** & **Query Scopes** support*
 
 *4. **Read & Write Splitting** for Replications*
+
+This package provide Base Model which extended `CI_Model` and provided full CRUD methods to make developing database interactions easier and quicker for your CodeIgniter applications.
 
 OUTLINE
 -------
@@ -62,6 +64,8 @@ DEMONSTRATION
 
 ### Find one
 ```php
+$this->load->model('post_model', 'PostModel');
+
 $post = $this->PostModel->findOne(123);
 ```
 
