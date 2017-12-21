@@ -158,7 +158,7 @@ To get started, let's create an model extends `BaseModel` or through `My_model`,
 
 ### Table Names
 
-You may specify a custom table by defining a table property on your model:
+You may specify a custom table name by defining a table property on your model:
 
 ```php
 class Post_model extends BaseModel
@@ -166,6 +166,8 @@ class Post_model extends BaseModel
     protected $table = "post_table";
 }
 ```
+
+#### Table Name Guessing
 
 ### Primary Keys
 
