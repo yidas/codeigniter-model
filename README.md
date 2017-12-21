@@ -103,26 +103,20 @@ CONFIGURATION
 
 After installation, `\BaseModel` class is ready to use.
 
-You could extend `BaseModel` for each Model or `My_Model` which defines common features in your application.
-
-### Extend BaseModel for Your Models
-
-Simply, you could extend the `BaseModel` for each model in your application:
+Simply, you could create a model to extend the `BaseModel`:
 
 ```php
 class Post_model extends BaseModel
 {
     protected $table = "post_table";
-    protected $primaryKey = 'sn';
-    // Configuration by Inheriting...
 }
 ```
 
 After extending `BaseModel` with basic configuration, the model is ready to use:
 
 ```php
-$this->load->model('Post_model');
-$post = $this->Post_model->findOne(123);
+$this->load->model('post_model', 'PostModel');
+$post = $this->PostModel->findOne(123);
 ```
 
 Instead of direct extending application models, we recommend you to make `My_model` extended `BaseModel` for each model.
