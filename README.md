@@ -139,7 +139,7 @@ class Post_model extends My_model
 }
 ```
 
-*3. Use each Model extended `My_model` with library usages:*
+*3. Use each extended Model with library usages:*
 
 ```php
 $this->load->model('post_model', 'PostModel');
