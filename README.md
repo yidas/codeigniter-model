@@ -108,24 +108,21 @@ Simply, you could create a model to extend the `BaseModel`:
 ```php
 class Post_model extends BaseModel
 {
-    protected $table = "post_table";
+    protected $table = "posts_table";
 }
 ```
 
-After extending `BaseModel` with basic configuration, the model is ready to use:
+After that, this model is ready to use for example: `$this->PostModel->findOne(123);`
 
-```php
-$this->load->model('post_model', 'PostModel');
-$post = $this->PostModel->findOne(123);
-```
+However, Instead of directly extending models, we recommend you to make `My_model` extended `BaseModel` for each model.
 
-Instead of direct extending application models, we recommend you to make `My_model` extended `BaseModel` for each model.
+### Use My_model to Extend BaseModel for every Models
 
-### Extend BaseModel for Your My_model in Application
-
-You could create `My_model` extended `BaseModel` for each model to extend in Codeigniter application.
+You could use `My_model` to extend `BaseModel` for each model to extend again in Codeigniter application.
 
 [My_model Example with Document](https://github.com/yidas/codeigniter-model/tree/master/example):
+
+1. Create `My_model` extended `BaseModel` with configuration for fitting your common table schema:
 
 ```php
 class My_model extends BaseModel
@@ -133,17 +130,25 @@ class My_model extends BaseModel
     protected $primaryKey = 'sn';
     const CREATED_AT = 'created_time';
     const UPDATED_AT = 'updated_time';
-    // Configuration for fitting your common table schema
+    // Customized Configurations for your app...
 }
 ```
 
-After building `My_model`, it's simple to create each model of application:
+2. Create each Model extended `My_model` in application with its own table configuration:
 
 ```php
 class Post_model extends My_model
 {
-    protected $table = "post_table";
+    protected $table = "posts_table";
 }
+```
+
+3. Use each Model extended `My_model` with library usages:
+
+```php
+$this->load->model('post_model', 'PostModel');
+
+$post = $this->PostModel->findOne(123);
 ```
 
 ---
