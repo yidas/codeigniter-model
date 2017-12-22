@@ -184,7 +184,7 @@ class BaseModel extends CI_Model
         
         /* Table Name Guessing */
         if (!$this->table) {
-            $this->table = str_replace('_model', '', strtolower(get_class());
+            $this->table = str_replace('_model', '', strtolower(get_called_class()));
         }
     }
 
