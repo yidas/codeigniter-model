@@ -158,16 +158,26 @@ To get started, let's create an model extends `BaseModel` or through `My_model`,
 
 ### Table Names
 
-You may specify a custom table name by defining a table property on your model:
+By convention, the "snake case" with lowercase excluded `_model` postfix of the class name will be used as the table name unless another name is explicitly specified. So, in this case, BaseModel will assume the `Posts_model` model stores records in the `posts` table. You may specify a custom table by defining a table property on your model:
 
 ```php
-class Post_model extends BaseModel
+class Posts_model extends BaseModel
 {
-    protected $table = "post_table";
+    protected $table = "posts_table";
 }
 ```
 
-#### Table Name Guessing
+#### Table Name Guessing Rule
+
+In our pattern, The naming between model class and table is the same, with supporting no matter singular or plural names:
+
+|Model Class Name|Table Name|
+|--|--|
+|Post_model|post|
+|Posts_model|posts|
+|User_info_model|user_info|
+
+
 
 ### Primary Keys
 
