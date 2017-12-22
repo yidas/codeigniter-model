@@ -104,10 +104,7 @@ CONFIGURATION
 After installation, `\BaseModel` class is ready to use. Simply, you could create a model to extend the `BaseModel` directly:
 
 ```php
-class Post_model extends BaseModel
-{
-    protected $table = "posts_table";
-}
+class Post_model extends BaseModel {}
 ```
 
 After that, this model is ready to use for example: `$this->PostModel->findOne(123);`
@@ -135,7 +132,7 @@ class My_model extends BaseModel
 ```php
 class Post_model extends My_model
 {
-    protected $table = "posts_table";
+    protected $table = "post_table";
 }
 ```
 
@@ -161,9 +158,9 @@ To get started, let's create an model extends `BaseModel` or through `My_model`,
 By convention, the "snake case" with lowercase excluded `_model` postfix of the class name will be used as the table name unless another name is explicitly specified. So, in this case, BaseModel will assume the `Posts_model` model stores records in the `posts` table. You may specify a custom table by defining a table property on your model:
 
 ```php
-class Posts_model extends BaseModel
+class Post_model extends BaseModel
 {
-    protected $table = "posts_table";
+    protected $table = "post_table";
 }
 ```
 
