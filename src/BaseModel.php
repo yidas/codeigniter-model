@@ -4,7 +4,7 @@
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  1.1.0
+ * @version  1.1.1
  * @see      https://github.com/yidas/codeigniter-model
  */
 class BaseModel extends CI_Model
@@ -155,7 +155,7 @@ class BaseModel extends CI_Model
             }
         } else {
             // CI Default DB Connection
-            $this->_db = $this->db; // No need to set as reference because $this->db is refered to &DB already.
+            $this->_db = $this->_getDefaultDB();
         }
         // Slave
         if ($this->databaseRead) {
@@ -179,7 +179,7 @@ class BaseModel extends CI_Model
             }
         } else {
             // CI Default DB Connection
-            $this->_dbr = $this->db; // No need to set as reference because $this->db is refered to &DB already.
+            $this->_dbr = $this->_getDefaultDB();
         }
         
         /* Table Name Guessing */
@@ -777,5 +777,19 @@ class BaseModel extends CI_Model
     protected function _field($columnName)
     {
         return "`{$this->table}`.`{$columnName}`";
+    }
+
+    /**
+     * Get & load $this->db in CI application
+     * 
+     * @return object CI $this->db
+     */
+    private function _getDefaultDB()
+    {
+        if (!isset($this->db)) {
+            $this->load->database();
+        }
+        // No need to set as reference because $this->db is refered to &DB already.
+        return $this->db;
     }
 }

@@ -155,10 +155,11 @@ To get started, let's create an model extends `BaseModel` or through `My_model`,
 
 ### Table Names
 
-By convention, the "snake case" with lowercase excluded `_model` postfix of the class name will be used as the table name unless another name is explicitly specified. So, in this case, BaseModel will assume the `Posts_model` model stores records in the `posts` table. You may specify a custom table by defining a table property on your model:
+By convention, the "snake case" with lowercase excluded `_model` postfix of the class name will be used as the table name unless another name is explicitly specified. So, in this case, BaseModel will assume the `Post_model` model stores records in the `post` table. You may specify a custom table by defining a table property on your model:
 
 ```php
-class Post_model extends BaseModel
+// class My_model extends BaseModel
+class Post_model extends My_model
 {
     protected $table = "post_table";
 }
@@ -178,10 +179,10 @@ In our pattern, The naming between model class and table is the same, with suppo
 
 ### Primary Keys
 
-You may define a protected $primaryKey property to override this convention.
+You may define a protected `$primaryKey` property to override this convention:
 
 ```php
-class Post_model extends BaseModel
+class My_model extends BaseModel
 {
     protected $primaryKey = "sn";
 }
@@ -387,7 +388,8 @@ class My_model extends BaseModel
 If you need to disabled SOFT DELETED feature for specified model, you may set `SOFT_DELETED` to `false`, which would disable any SOFT DELETED functions including `DELETED_AT` feature:
 
 ```php
-class My_model extends BaseModel
+// class My_model extends BaseModel
+class Log_model extends My_model
 {
     const SOFT_DELETED = false;
 }
@@ -504,7 +506,7 @@ There are three types to set read & write databases:
 
 #### Codeigniter Database Key
 
-You could set the database key refering from `\application\config\database.php` to `database` & `databaseRead` attribute, the setting connections would be created automatically:
+You could set the database key refered from `\application\config\database.php` into model attributes of `database` & `databaseRead`, the setting connections would be created automatically:
 
 ```php
 class My_model extends BaseModel
@@ -562,5 +564,12 @@ $slaveHosts = ['192.168.1.2', '192.168.1.3'];
 $db['slave']['hostname'] = $slaveHosts[mt_rand(0, count($slaveHosts) - 1)];
 ```
 
-After that, you could use database key `slave` to load or assign it to attribute likes: `protected $databaseRead = 'slave';`
+After that, you could use database key `slave` to load or assign it to attribute:
+
+```php
+class My_model extends BaseModel
+{
+    protected $databaseRead = 'slave';
+}
+```
 
