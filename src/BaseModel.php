@@ -4,7 +4,7 @@
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  1.0.0
+ * @version  1.1.0
  * @see      https://github.com/yidas/codeigniter-model
  */
 class BaseModel extends CI_Model
