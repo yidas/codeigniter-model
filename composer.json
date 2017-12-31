@@ -11,6 +11,8 @@
     },
     "minimum-stability": "stable",
     "autoload": {
-        "classmap": ["src/"]
+        "psr-4": {
+            "yidas\\": "src/"
+        }
     }
 }

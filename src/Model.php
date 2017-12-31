@@ -1,13 +1,15 @@
 <?php
 
+namespace yidas;
+
 /**
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  1.1.1
+ * @version  2.0.0
  * @see      https://github.com/yidas/codeigniter-model
  */
-class BaseModel extends CI_Model
+class Model extends \CI_Model
 {
     /**
      * Database Configuration for read-write master
@@ -35,7 +37,7 @@ class BaseModel extends CI_Model
      *
      * @var string Field name of single column primary key
      */
-    protected $primaryKey = '';
+    protected $primaryKey = 'id';
 
     /**
      * @string Feild name for created_at, empty is disabled.

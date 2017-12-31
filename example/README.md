@@ -1,11 +1,11 @@
 Example of My_model
 ===================
 
-You could make My_model extends `BaseModel` for each model in your application.
+The best practice to use `BaseModel` is using `My_model` to extend for every models, you could refer the document [Use My_model to Extend BaseModel for every Models](https://github.com/yidas/codeigniter-model#use-my_model-to-extend-basemodel-for-every-models) for building the structure in your Codeigniter application.
 
-Example of [My_model](https://github.com/yidas/codeigniter-model/blob/master/example/My_model.php):
+[My_model example code](https://github.com/yidas/codeigniter-model/blob/master/example/My_model.php)
 
->Based on BaseModel, My_model is customized for your web application with features, such as the verification of user ID and company ID for multiple user layers.
+>Based on BaseModel, My_model is customized for your web application with schema such as primary key and column names for behavior setting. Futher, all of your model may need access features, such as the verification of user ID and company ID for multiple user layers.
 
 ---
 
@@ -13,6 +13,37 @@ Features
 --------
 
 This example My_model assumes that a user is belong to a company, so each data row is belong to a user with that company. The Model basic funcitons overrided BaseModel with user and company verification to implement the protection. 
+
+---
+
+CONFIGURATION
+-------------
+
+```php
+class My_model extends BaseModel
+{
+    /* Configuration by Inheriting */
+    
+    // The regular PK Key in App
+    protected $primaryKey = 'id';
+    // Timestamps on
+    protected $timestamps = true;
+    // Soft Deleted on
+    const SOFT_DELETED = 'is_deleted';
+    
+    protected function _globalScopes()
+    {
+        // Global Scope...
+    }
+    
+    protected function _attrEventBeforeInsert(&$attributes)
+    {
+        // Insert Behavior...
+    }
+    
+    // Other Behaviors...
+}
+```
 
 
 Defining Models
