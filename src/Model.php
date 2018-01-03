@@ -6,7 +6,7 @@ namespace yidas;
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  2.0.0
+ * @version  2.1.0
  * @see      https://github.com/yidas/codeigniter-model
  */
 class Model extends \CI_Model
@@ -239,9 +239,17 @@ class Model extends \CI_Model
      *
      * @return string Table name
      */
-    public function tableName()
+    public function getTable()
     {
         return $this->table;
+    }
+
+    /**
+     * Alias of getTable()
+     */
+    public function tableName()
+    {
+        return $this->getTable();
     }
 
     /**
