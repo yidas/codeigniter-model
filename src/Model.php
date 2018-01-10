@@ -352,7 +352,7 @@ class Model extends \CI_Model
      */
     public function findOne($condition)
     {
-        $query = $this->_findByCondition($condition)->get();
+        $query = $this->_findByCondition($condition)->limit(1)->get();
 
         return $query->row_array();
     }

@@ -4,7 +4,7 @@
     "keywords": ["codeIgniter", "model", "base model", "my_model"],
     "homepage": "https://github.com/yidas/codeigniter-model",
     "type": "project",
-    "license": "BSD-3-Clause",
+    "license": "MIT",
     "support": {
         "issues": "https://github.com/yidas/codeigniter-model/issues",
         "source": "https://github.com/yidas/codeigniter-model"

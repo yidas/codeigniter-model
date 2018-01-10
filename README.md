@@ -15,13 +15,13 @@ CodeIgniter 3 ORM Base Model supported Read & Write Database Connections
 Features
 --------
 
-*1. **Elegant patterns** as Laravel Eloquent & Yii2 Active Record (ORM is not yet)*
+- ***Elegant patterns** as Laravel Eloquent & Yii2 Active Record (ORM is not yet)*
 
-*2. **Codeigniter Query Builder** integration*
+- ***Codeigniter Query Builder** integration*
 
-*3. **Timestamps Behavior** & **Soft Deleting** & **Query Scopes** support*
+- ***Timestamps Behavior** & **Soft Deleting** & **Query Scopes** support*
 
-*4. **Read & Write Splitting** for Replications*
+- ***Read & Write Splitting** for Replications*
 
 This package provide Base Model which extended `CI_Model` and provided full CRUD methods to make developing database interactions easier and quicker for your CodeIgniter applications.
 
@@ -29,6 +29,8 @@ OUTLINE
 -------
 
 * [Demonstration](#demonstration)
+
+* [Requirements](#requirements)
 
 * [Installation](#installation)
 
@@ -92,6 +94,16 @@ $result = $this->PostModel->update(['title' => 'CI3 Model'], $post['id']);
 // Delete the record
 $result = $this->PostModel->delete($post['id']);
 ```
+
+---
+
+REQUIREMENTS
+------------
+
+This library requires the following:
+
+- PHP 5.4.0+
+- CodeIgniter 3.0.0+
 
 ---
 
@@ -188,6 +200,14 @@ In our pattern, The naming between model class and table is the same, with suppo
 |Post_model|post|
 |Posts_model|posts|
 |User_info_model|user_info|
+
+#### Get Table Name
+
+You could get table name from each Model:
+
+```php
+$tableName = $this->PostModel->getTable();
+```
 
 
 
