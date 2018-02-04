@@ -58,6 +58,8 @@ OUTLINE
 * [Read & Write Connections](#read--write-connections)
   - [Configuration](#configuration-3)
   - [Load Balancing for Databases](#load-balancing-for-databases)
+
+* [Pessimistic Locking](#pessimistic-locking)
   
 ---
 
@@ -607,3 +609,32 @@ class My_model extends yidas\Model
 }
 ```
 
+---
+
+PESSIMISTIC LOCKING
+-------------------
+
+The Model also includes a few functions to help you do "pessimistic locking" on your `select` statements. To run the statement with a "shared lock", you may use the `sharedLock` method to get a query. A shared lock prevents the selected rows from being modified until your transaction commits:
+
+```php
+$this->Model->find()->where('id', 123);
+$result = $this->Model->sharedLock()->row_array();
+```
+
+Alternatively, you may use the `lockForUpdate` method. A "for update" lock prevents the rows from being modified or from being selected with another shared lock:
+
+```php
+$this->Model->find()->where('id', 123);
+$result = $this->Model->lockForUpdate()->row_array();
+```
+
+### Example Code
+
+This transaction block will lock selected rows for next same selected rows with `FOR UPDATE` lock:
+
+```php
+$this->Model->getDB()->trans_start();
+$this->Model->find()->where('id', 123)
+$result = $this->Model->lockForUpdate()->row_array();
+$this->Model->getDB()->trans_complete(); 
+```

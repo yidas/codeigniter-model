@@ -6,7 +6,7 @@ namespace yidas;
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  2.1.0
+ * @version  2.2.1
  * @see      https://github.com/yidas/codeigniter-model
  */
 class Model extends \CI_Model
@@ -441,7 +441,7 @@ class Model extends \CI_Model
      *  $this->Model->update(['status'=>'off'], 123)
      * @example
      *  // Query builder ORM usage
-     *  $this->Model->getDB()->where('id', 123);
+     *  $this->Model->find()->where('id', 123);
      *  $this->Model->update(['status'=>'off']);
      */
     public function update($attributes, $condition=NULL)
@@ -470,7 +470,7 @@ class Model extends \CI_Model
      *  $this->Model->delete(123);
      * @example
      *  // Query builder ORM usage
-     *  $this->Model->getDB()->where('id', 123);
+     *  $this->Model->find()->where('id', 123);
      *  $this->Model->delete();
      * @example  
      *  // Force delete for SOFT_DELETED mode 
@@ -518,7 +518,7 @@ class Model extends \CI_Model
      *  $this->Model->forceDelete(123)
      * @example
      *  // Query builder ORM usage
-     *  $this->Model->getDB()->where('id', 123);
+     *  $this->Model->find()->where('id', 123);
      *  $this->Model->forceDelete();
      */
     public function forceDelete($condition=NULL)
@@ -565,8 +565,15 @@ class Model extends \CI_Model
      * sharedLock locks only for write, lockForUpdate also prevents them from being selected
      *
      * @example 
-     *  $this->find()->where('id', 123)
-     *  $result = $this->lockForUpdate()->row_array();'
+     *  $this->Model->find()->where('id', 123)
+     *  $result = $this->Model->lockForUpdate()->row_array();
+     * @example
+     *  // This transaction block will lock selected rows for next same selected
+     *  // rows with `FOR UPDATE` lock:
+     *  $this->Model->getDB()->trans_start();
+     *  $this->Model->find()->where('id', 123)
+     *  $result = $this->Model->lockForUpdate()->row_array();
+     *  $this->Model->getDB()->trans_complete();  
      * 
      * @return object CI_DB_result
      */
@@ -583,8 +590,8 @@ class Model extends \CI_Model
      * Share lock the selected rows in the table.
      * 
      * @example 
-     *  $this->find()->where('id', 123)
-     *  $result = $this->sharedLock()->row_array();'
+     *  $this->Model->find()->where('id', 123)
+     *  $result = $this->Model->sharedLock()->row_array();'
      * 
      * @return object CI_DB_result
      */
@@ -834,6 +841,11 @@ class Model extends \CI_Model
      */
     private function _getDefaultDB()
     {
+        // For ReadDatabase checking Master first
+        if ($this->_db) {
+            return $this->_db;
+        }
+        
         if (!isset($this->db)) {
             $this->load->database();
         }
