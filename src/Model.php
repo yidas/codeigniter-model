@@ -560,6 +560,44 @@ class Model extends \CI_Model
     }
 
     /**
+     * Lock the selected rows in the table for updating.
+     * 
+     * sharedLock locks only for write, lockForUpdate also prevents them from being selected
+     *
+     * @example 
+     *  $this->find()->where('id', 123)
+     *  $result = $this->lockForUpdate()->row_array();'
+     * 
+     * @return object CI_DB_result
+     */
+    public function lockForUpdate()
+    {
+        // Pack query then move it to write DB from read DB for transaction
+        $sql = $this->_dbr->get_compiled_select();
+        $this->_dbr->reset_query();
+
+        return $this->_db->query("{$sql} FOR UPDATE");
+    }
+
+    /**
+     * Share lock the selected rows in the table.
+     * 
+     * @example 
+     *  $this->find()->where('id', 123)
+     *  $result = $this->sharedLock()->row_array();'
+     * 
+     * @return object CI_DB_result
+     */
+    public function sharedLock()
+    {
+        // Pack query then move it to write DB from read DB for transaction
+        $sql = $this->_dbr->get_compiled_select();
+        $this->_dbr->reset_query();
+
+        return $this->_db->query("{$sql} LOCK IN SHARE MODE");
+    }
+
+    /**
      * Without SOFT_DELETED query conditions for next find()
      *
      * @return object Self
