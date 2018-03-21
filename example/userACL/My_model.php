@@ -27,13 +27,13 @@ class My_model extends yidas\Model
     // The regular PK Key in App
     protected $primaryKey = 'id';
 
+    protected $timestamps = true;
+
     // Mainstream creating field name
     const CREATED_AT = 'created_at';
 
     // Mainstream updating field name
     const UPDATED_AT = 'updated_at';
-
-    protected $timestamps = true;
 
     // Use unixtime for saving datetime
     protected $dateFormat = 'unixtime';

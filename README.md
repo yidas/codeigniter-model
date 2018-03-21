@@ -40,6 +40,7 @@ OUTLINE
   - [Table Names](#table-names)
   - [Primary Keys](#primary-keys)
   - [Timestamps](#timestamps)
+  - [Database Connection](#database-connection)
 
 * [Usage](#usage)
   - [find()](#find)
@@ -268,6 +269,19 @@ class My_model extends yidas\Model
     const UPDATED_AT = NULL;
 }
 ```
+
+### Database Connection
+
+By default, all models will use the default database connection `$this->db` configured for your application. If you would like to specify a different connection for the model, use the `$database` property:
+
+```php
+class My_model extends yidas\Model
+{
+    protected $database = 'database2';
+}
+```
+
+> More Database Connection settings: [Read & Write Connections](#read--write-connections)
 
 ---
 

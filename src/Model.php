@@ -6,7 +6,7 @@ namespace yidas;
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  2.2.1
+ * @version  2.3.0
  * @see      https://github.com/yidas/codeigniter-model
  */
 class Model extends \CI_Model
@@ -40,16 +40,6 @@ class Model extends \CI_Model
     protected $primaryKey = 'id';
 
     /**
-     * @string Feild name for created_at, empty is disabled.
-     */
-    const CREATED_AT = 'created_at';
-
-    /**
-     * @string Feild name for updated_at, empty is disabled.
-     */
-    const UPDATED_AT = 'updated_at';
-
-    /**
      * Indicates if the model should be timestamped.
      *
      * @var bool
@@ -61,7 +51,24 @@ class Model extends \CI_Model
      *
      * @var string unixtime|datetime
      */
-    protected $dateFormat = 'unixtime';
+    protected $dateFormat = 'datetime';
+
+    /**
+     * @string Feild name for created_at, empty is disabled.
+     */
+    const CREATED_AT = 'created_at';
+
+    /**
+     * @string Feild name for updated_at, empty is disabled.
+     */
+    const UPDATED_AT = 'updated_at';
+
+    /**
+     * CREATED_AT triggers UPDATED_AT.
+     *
+     * @var bool
+     */
+    protected $createdWithUpdated = true;
 
     /**
      * @var string Feild name for SOFT_DELETED, empty is disabled.
@@ -669,7 +676,13 @@ class Model extends \CI_Model
      */
     protected function _attrEventBeforeInsert(&$attributes)
     {
-        $this->_dateFormat(static::CREATED_AT, $attributes);
+        $this->_formatDate(static::CREATED_AT, $attributes);
+
+        // Trigger UPDATED_AT
+        if ($this->createdWithUpdated) {
+            
+            $this->_formatDate(static::UPDATED_AT, $attributes);
+        }
 
         return $attributes;
     }
@@ -682,7 +695,7 @@ class Model extends \CI_Model
      */
     protected function _attrEventBeforeUpdate(&$attributes)
     {
-        $this->_dateFormat(static::UPDATED_AT, $attributes);
+        $this->_formatDate(static::UPDATED_AT, $attributes);
 
         return $attributes;
     }
@@ -695,7 +708,7 @@ class Model extends \CI_Model
      */
     protected function _attrEventBeforeDelete(&$attributes)
     {
-        $this->_dateFormat(static::DELETED_AT, $attributes);
+        $this->_formatDate(static::DELETED_AT, $attributes);
 
         return $attributes;
     }
@@ -761,7 +774,7 @@ class Model extends \CI_Model
      * @param array Attributes
      * @return array Addon $attributes of pointer
      */
-    protected function _dateFormat($field, &$attributes)
+    protected function _formatDate($field, &$attributes)
     {
         if ($this->timestamps && $field) {
 
