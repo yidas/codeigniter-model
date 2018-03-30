@@ -28,39 +28,30 @@ This package provide Base Model which extended `CI_Model` and provided full CRUD
 OUTLINE
 -------
 
-* [Demonstration](#demonstration)
-
-* [Requirements](#requirements)
-
-* [Installation](#installation)
-
-* [Configuration](#configuration)
-
-* [Defining Models](#defining-models)
+- [Demonstration](#demonstration)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Defining Models](#defining-models)
   - [Table Names](#table-names)
   - [Primary Keys](#primary-keys)
   - [Timestamps](#timestamps)
   - [Database Connection](#database-connection)
-
-* [Usage](#usage)
+- [Usage](#usage)
   - [find()](#find)
   - [insert()](#insert)
   - [update()](#update)
   - [delete()](#delete)
-
-* [Soft Deleted](#soft-deleted)
+- [Soft Deleted](#soft-deleted)
   - [Configuration](#configuration-1)
   - [Usage](#usage-1)
-
-* [Query Scopes](#query-scopes)
+- [Query Scopes](#query-scopes)
   - [Configuration](#configuration-2)
   - [Usage](#usage-2)
-  
-* [Read & Write Connections](#read--write-connections)
+- [Read & Write Connections](#read--write-connections)
   - [Configuration](#configuration-3)
   - [Load Balancing for Databases](#load-balancing-for-databases)
-
-* [Pessimistic Locking](#pessimistic-locking)
+- [Pessimistic Locking](#pessimistic-locking)
   
 ---
 

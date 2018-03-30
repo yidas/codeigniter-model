@@ -15,7 +15,7 @@ CREATE TABLE `table` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `ip` char(15) DEFAULT NULL COMMENT 'IP header',
   `user_agent` varchar(255) DEFAULT NULL COMMENT 'User-Agent header',
-  `c_date` datetime NOT NULL
+  `created_at` datetime NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 ALTER TABLE `table`

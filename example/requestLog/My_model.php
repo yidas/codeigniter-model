@@ -23,6 +23,9 @@ class My_model extends yidas\Model
 
     // Mainstream creating field name
     const CREATED_AT = 'created_at';
+    
+    // Log has no updating
+    const UPDATED_AT = null;
 
     protected $timestamps = true;
 

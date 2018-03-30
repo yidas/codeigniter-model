@@ -657,6 +657,37 @@ class Model extends \CI_Model
     }
 
     /**
+     * Index by Key
+     *
+     * @param array  $array Array data for handling
+     * @param string $key  Array key for index key
+     * @param bool   $obj2Array Object converts to array if is object
+     * @return array Result with indexBy Key
+     * @example 
+     *  $records = $this->Model->findAll();
+     *  $this->Model->indexBy($records, 'sn');
+     */
+    public static function indexBy(Array &$array, $key=null, $obj2Array=false)
+    {
+        // Use model instance's primary key while no given key
+        $key = ($key) ?: (new static())->primaryKey;
+
+        $tmp = [];
+        foreach ($array as $row) {
+            // Array & Object types support 
+            if (is_object($row) && isset($row->$key)) {
+                
+                $tmp[$row->$key] = ($obj2Array) ? (array)$row : $row;
+            } 
+            elseif (is_array($row) && isset($row[$key])) {
+                
+                $tmp[$row[$key]] = $row;
+            }
+        }
+        return $array = $tmp;
+    }
+
+    /**
      * Query Scopes Handler
      *
      * @return bool Result
