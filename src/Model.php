@@ -419,6 +419,16 @@ class Model extends \CI_Model
     }
 
     /**
+     * Get the insert ID number when performing database inserts.
+     *
+     * @return integer Last insert ID
+     */
+    public function getLastInsertID()
+    {
+        return $this->getDB()->insert_id();
+    }
+
+    /**
      * Replace a row with Timestamps feature into the associated database table using the attribute values of this record.
      * 
      * @param array $attributes

@@ -39,9 +39,14 @@ OUTLINE
   - [Database Connection](#database-connection)
 - [Usage](#usage)
   - [find()](#find)
-  - [insert()](#insert)
+  - [findOne()](#findone)
+  - [findAll()](#findall)
+  - [insert()](#insert))
+  - [batchInsert()](#batchinsert)
   - [update()](#update)
+  - [replace()](#replace)
   - [delete()](#delete)
+  - [getLastInsertID()](#getlastinsertid))
 - [Soft Deleted](#soft-deleted)
   - [Configuration](#configuration-1)
   - [Usage](#usage-1)
@@ -52,6 +57,8 @@ OUTLINE
   - [Configuration](#configuration-3)
   - [Load Balancing for Databases](#load-balancing-for-databases)
 - [Pessimistic Locking](#pessimistic-locking)
+- [Helpers](#helpers)
+  - [indexBy()](#indexby)
   
 ---
 
@@ -390,6 +397,14 @@ $result = $this->Model->delete();
 $this->Model->delete(123, true);
 ```
 
+### getLastInsertID()
+
+Get the insert ID number when performing database inserts.
+
+```php
+$result = $this->Model->insert(['name' => 'Nick Tsai']);
+$lastInsertID = $this->Model->getLastInsertID();
+```
 
 ---
 
@@ -643,3 +658,30 @@ $this->Model->find()->where('id', 123)
 $result = $this->Model->lockForUpdate()->row_array();
 $this->Model->getDB()->trans_complete(); 
 ```
+
+---
+
+HELPERS
+-------
+
+### `indexBy()`
+
+Index by Key
+
+```php
+array indexBy(Array & $array [, Integer $key] [, Boolean $obj2Array])
+```
+
+Example:
+
+```php
+$records = $this->Model->findAll();
+$this->Model->indexBy($records, 'sn');
+
+// Result example of $records:
+[
+    7 => ['sn'=>7, title=>'Foo'],
+    13 => ['sn'=>13, title=>'Bar']
+]
+```
+
