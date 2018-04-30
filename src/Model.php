@@ -6,7 +6,7 @@ namespace yidas;
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  2.4.0
+ * @version  2.5.0
  * @see      https://github.com/yidas/codeigniter-model
  */
 class Model extends \CI_Model
