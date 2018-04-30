@@ -46,7 +46,8 @@ OUTLINE
   - [update()](#update)
   - [replace()](#replace)
   - [delete()](#delete)
-  - [getLastInsertID()](#getlastinsertid))
+  - [getLastInsertID()](#getlastinsertid)
+  - [setAlias()](#setalias)
 - [Soft Deleted](#soft-deleted)
   - [Configuration](#configuration-1)
   - [Usage](#usage-1)
@@ -191,6 +192,8 @@ class Post_model extends My_model
     protected $table = "post_table";
 }
 ```
+
+> You could set table alias by defining `protected $alias = 'A1';` for model.
 
 #### Table Name Guessing Rule
 
@@ -404,6 +407,16 @@ Get the insert ID number when performing database inserts.
 ```php
 $result = $this->Model->insert(['name' => 'Nick Tsai']);
 $lastInsertID = $this->Model->getLastInsertID();
+```
+
+### setAlias()
+
+Set table alias
+
+```php
+$query = $this->Model->setAlias("A1")
+    ->find()
+    ->join('table2 AS A2', 'A1.id = A2.id');
 ```
 
 ---

@@ -33,6 +33,13 @@ class Model extends \CI_Model
     protected $table = "";
 
     /**
+     * Table alias name
+     *
+     * @var string
+     */
+    protected $alias = null;
+
+    /**
      * Primary key of table
      *
      * @var string Field name of single column primary key
@@ -299,6 +306,19 @@ class Model extends \CI_Model
     }
 
     /**
+     * Set table alias
+     *
+     * @param string Table alias name
+     * @return self
+     */
+    public function setAlias($alias)
+    {
+        $this->alias = $alias;
+        
+        return $this;
+    }
+
+    /**
      * Create an CI Query Builder instance with Model Filters for query purpose.
      *
      * @param bookl $withAll withAll() switch helper
@@ -322,8 +342,11 @@ class Model extends \CI_Model
      */
     public function find($withAll=false)
     {
+        // Alias option for FROM
+        $sqlFrom = ($this->alias) ? "{$this->table} AS {$this->alias}" : $this->table;
+        
         $this->_dbr
-            ->from($this->table);
+            ->from($sqlFrom);
 
         // WithAll helper
         if ($withAll===true) {
@@ -885,7 +908,7 @@ class Model extends \CI_Model
      */
     protected function _field($columnName)
     {
-        return "`{$this->table}`.`{$columnName}`";
+        return ($this->alias) ? "`{$this->alias}`.`{$columnName}`" : "`{$this->table}`.`{$columnName}`";
     }
 
     /**
