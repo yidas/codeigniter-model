@@ -44,6 +44,7 @@ OUTLINE
   - [insert()](#insert))
   - [batchInsert()](#batchinsert)
   - [update()](#update)
+  - [batchUpdate()](#batchupdate)
   - [replace()](#replace)
   - [delete()](#delete)
   - [getLastInsertID()](#getlastinsertid)
@@ -380,6 +381,17 @@ $result = $this->Model->update(['status'=>'off']);
 > Notice: You need to call `update` from Model but not from CI-DB builder chain, the wrong sample code: 
 > 
 > `$this->Model->find()->where('id', 123)->update('table', ['status'=>'off']);`
+
+### batchUpdate()
+
+Update a batch of rows in combined query string.
+
+```php
+$result = $this->Model->batchUpdate([
+    [['title'=>'A1', 'modified'=>'1'], ['id'=>1]],
+    [['title'=>'A2', 'modified'=>'1'], ['id'=>2]],
+]);
+```
 
 ### delete()
 

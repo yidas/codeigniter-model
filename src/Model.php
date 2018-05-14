@@ -499,6 +499,55 @@ class Model extends \CI_Model
     }
 
     /**
+     * Update a batch of rows in combined query string.
+     *
+     * @param array $dataSet [[[Attributes], [Condition]], ]
+     * @param integer $maxLenth MySQL max_allowed_packet
+     * @return integer Count of sucessful query 
+     * @example 
+     *  $result = $this->Model->batchUpdate([
+     *      [['title'=>'A1', 'modified'=>'1'], ['id'=>1]],
+     *      [['title'=>'A2', 'modified'=>'1'], ['id'=>2]],
+     *  ];);
+     */
+    public function batchUpdate(Array $dataSet, $maxLength=4*1024*1024)
+    {
+        $count = 0;
+        $sqlBatch = '';
+        
+        foreach ($dataSet as $key => &$each) {
+
+            // Data format
+            list($attributes, $condition) = $each;
+
+            // Model Condition
+            $query = $this->_findByCondition($condition);
+
+            $attributes = $this->_attrEventBeforeUpdate($attributes);
+
+            // Pack query then move it to write DB from read DB
+            $sql = $this->_dbr->set($attributes)->get_compiled_update();
+            $this->_dbr->reset_query();
+
+            // Max length process
+            if (strlen($sqlBatch) >= $maxLength) {
+                // Each batch of query
+                $result = $this->_db->query($sqlBatch);
+                $sqlBatch = "";
+                $count = ($result) ? $count + 1 : $count;
+            }
+            
+            // Keep Combining query
+            $sqlBatch .= "{$sql};\n";
+        }
+
+        // Last batch of query
+        $result = $this->_db->query($sqlBatch);
+
+        return ($result) ? $count + 1 : $count;
+    }
+
+    /**
      * Delete the selected record(s) with Timestamps feature into the associated database table.
      * 
      * @param mixed $condition Refer to _findByCondition() for the explanation 
