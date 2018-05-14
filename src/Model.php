@@ -319,7 +319,7 @@ class Model extends \CI_Model
     }
 
     /**
-     * Create an CI Query Builder instance with Model Filters for query purpose.
+     * Create or reset an CI Query Builder instance with Model Filters for query purpose.
      *
      * @param bookl $withAll withAll() switch helper
      * @return object CI_DB_query_builder
@@ -342,11 +342,13 @@ class Model extends \CI_Model
      */
     public function find($withAll=false)
     {
+        // Reset query
+        $this->_dbr->reset_query();
+        
         // Alias option for FROM
         $sqlFrom = ($this->alias) ? "{$this->table} AS {$this->alias}" : $this->table;
         
-        $this->_dbr
-            ->from($sqlFrom);
+        $this->_dbr->from($sqlFrom);
 
         // WithAll helper
         if ($withAll===true) {
@@ -499,7 +501,7 @@ class Model extends \CI_Model
     }
 
     /**
-     * Update a batch of rows in combined query string.
+     * Update a batch of update queries into combined query strings.
      *
      * @param array $dataSet [[[Attributes], [Condition]], ]
      * @param integer $maxLenth MySQL max_allowed_packet
@@ -613,6 +615,16 @@ class Model extends \CI_Model
     public function forceDelete($condition=NULL)
     {
         return $this->delete($condition, true);
+    }
+
+    /**
+     * Get the number of affected rows when doing “write” type queries (insert, update, etc.).
+     *
+     * @return integer Last insert ID
+     */
+    public function getAffectedRows()
+    {
+        return $this->getDB()->affected_rows();
     }
 
     /**

@@ -39,9 +39,10 @@ OUTLINE
   - [Database Connection](#database-connection)
 - [Usage](#usage)
   - [find()](#find)
+    - [Query Builder Implementation](#query-builder-implementation)
   - [findOne()](#findone)
   - [findAll()](#findall)
-  - [insert()](#insert))
+  - [insert()](#insert)
   - [batchInsert()](#batchinsert)
   - [update()](#update)
   - [batchUpdate()](#batchupdate)
@@ -68,6 +69,7 @@ DEMONSTRATION
 -------------
 
 ### Find One
+
 ```php
 $this->load->model('post_model', 'PostModel');
 
@@ -85,6 +87,7 @@ $posts = $this->PostModel->find()
 ```
 
 ### CRUD
+
 ```php
 $result = $this->PostModel->insert(['title' => 'Codeigniter Model']);
 // Find out the record which just be inserted
@@ -290,12 +293,20 @@ class My_model extends yidas\Model
 USAGE
 -----
 
-### find()
-
-Create an CI Query Builder instance with Model Filters for query purpose.
+Above usage examples are calling Models out of model, for example in controller:
 
 ```php
-$posts = $this->PostModel->find()
+$this->load->model('post_model', 'Model');
+```
+
+If you call methods in Model itself, just calling `$this` as model. For example, `$this->find()...` for `find()`;
+
+### find()
+
+Create or reset an CI Query Builder instance with Model Filters for query purpose.
+
+```php
+$records = $this->Model->find()
     ->where('is_public', '1')
     ->limit(0,25)
     ->order_by('id')
@@ -305,13 +316,25 @@ $posts = $this->PostModel->find()
 
 ```php
 // Without any scopes & conditions for this query
-$posts = $this->PostModel->find(true)
+$records = $this->Model->find(true)
     ->where('is_deleted', '1')
     ->get()
     ->result_array();
     
 // This is equal to find(true) method
-$this->PostModel->withAll()->find();
+$this->Model->withAll()->find();
+```
+
+#### Query Builder Implementation
+
+You could assign Query Builder as a variable to handle add-on conditions instead of using `$this->Model->getBuilder()`.
+
+```php
+$queryBuilder = $this->Model->find();
+if ($filter) {
+    $queryBuilder->where('filter', $filter);
+}
+$records = $queryBuilder->get()->result_array();
 ```
 
 ### findOne()
@@ -319,7 +342,7 @@ $this->PostModel->withAll()->find();
 Return a single record array by a primary key or an array of column values with Model Filters.
 
 ```php
-$post = $this->PostModel->findOne(123);
+$post = $this->Model->findOne(123);
 ```
 
 ### findAll()
@@ -327,7 +350,7 @@ $post = $this->PostModel->findOne(123);
 Return a list of records that match the specified primary key value(s) or a set of column values with Model Filters.
 
 ```php
-$post = $this->PostModel->findAll([3,21,135]);
+$post = $this->Model->findAll([3,21,135]);
 ```
 
 ### insert()
@@ -384,7 +407,7 @@ $result = $this->Model->update(['status'=>'off']);
 
 ### batchUpdate()
 
-Update a batch of rows in combined query string.
+Update a batch of update queries into combined query strings.
 
 ```php
 $result = $this->Model->batchUpdate([
@@ -419,6 +442,15 @@ Get the insert ID number when performing database inserts.
 ```php
 $result = $this->Model->insert(['name' => 'Nick Tsai']);
 $lastInsertID = $this->Model->getLastInsertID();
+```
+
+### getAffectedRows()
+
+Get the number of affected rows when doing “write” type queries (insert, update, etc.).
+
+```php
+$result = $this->Model->update(['name' => 'Nick Tsai'], 32);
+$affectedRows = $this->Model->getAffectedRows();
 ```
 
 ### setAlias()
@@ -475,8 +507,6 @@ class Log_model extends My_model
     const SOFT_DELETED = false;
 }
 ```
-
----
 
 ### Usage
 
@@ -548,8 +578,6 @@ class My_model extends yidas\Model
 ```
 
 After overriding that, the `My_model` will constrain that scope in every query from `find()`, unless you remove the query scope before a find query likes `withoutGlobalScopes()`.
-
----
 
 ### Usage
 
