@@ -49,6 +49,7 @@ OUTLINE
   - [replace()](#replace)
   - [delete()](#delete)
   - [getLastInsertID()](#getlastinsertid)
+  - [getAffectedRows()](#getaffectedrows)
   - [setAlias()](#setalias)
 - [Soft Deleted](#soft-deleted)
   - [Configuration](#configuration-1)
