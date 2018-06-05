@@ -319,7 +319,7 @@ class Model extends \CI_Model
     }
 
     /**
-     * Create or reset an CI Query Builder instance with Model Filters for query purpose.
+     * Create an existent CI Query Builder instance with Model features for query purpose.
      *
      * @param bookl $withAll withAll() switch helper
      * @return object CI_DB_query_builder
@@ -342,9 +342,6 @@ class Model extends \CI_Model
      */
     public function find($withAll=false)
     {
-        // Reset query
-        $this->_dbr->reset_query();
-        
         // Alias option for FROM
         $sqlFrom = ($this->alias) ? "{$this->table} AS {$this->alias}" : $this->table;
         
@@ -402,6 +399,22 @@ class Model extends \CI_Model
         $query = $this->_findByCondition($condition)->get();
 
         return $query->result_array();
+    }
+
+    /**
+     * reset an CI Query Builder instance with Model
+     *
+     * @return object Self
+     * @example 
+     *  $this->Model->reset()->find();
+     */
+    public function reset()
+    {
+        // Reset query
+        $this->_db->reset_query();
+        $this->_dbr->reset_query();
+        
+        return $this;
     }
 
     /**
