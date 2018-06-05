@@ -6,7 +6,7 @@ namespace yidas;
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  2.7.0
+ * @version  2.7.0.1
  * @see      https://github.com/yidas/codeigniter-model
  */
 class Model extends \CI_Model
@@ -402,7 +402,7 @@ class Model extends \CI_Model
     }
 
     /**
-     * reset an CI Query Builder instance with Model
+     * reset an CI Query Builder instance with Model.
      *
      * @return object Self
      * @example 
