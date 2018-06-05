@@ -42,6 +42,7 @@ OUTLINE
     - [Query Builder Implementation](#query-builder-implementation)
   - [findOne()](#findone)
   - [findAll()](#findall)
+  - [reset()](#reset)
   - [insert()](#insert)
   - [batchInsert()](#batchinsert)
   - [update()](#update)
@@ -304,7 +305,7 @@ If you call methods in Model itself, just calling `$this` as model. For example,
 
 ### find()
 
-Create or reset an CI Query Builder instance with Model Filters for query purpose.
+Create an existent CI Query Builder instance with Model features for query purpose.
 
 ```php
 $records = $this->Model->find()
@@ -352,6 +353,14 @@ Return a list of records that match the specified primary key value(s) or a set 
 
 ```php
 $post = $this->Model->findAll([3,21,135]);
+```
+
+### reset()
+
+reset an CI Query Builder instance with Model.
+
+```php
+$this->Model->reset()->find();
 ```
 
 ### insert()
