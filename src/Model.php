@@ -144,6 +144,13 @@ class Model extends \CI_Model
     private $_withoutGlobalScope = false;
 
     /**
+     * ORM properties
+     *
+     * @var array
+     */
+    private $_properties = [];
+
+    /**
      * Constructor
      */
     function __construct()
@@ -795,6 +802,21 @@ class Model extends \CI_Model
     }
 
     /**
+     * ORM save
+     *
+     * @return bool Result of CI insert
+     */
+    public function save()
+    {
+        $result = $this->insert($this->_properties);
+
+        // Reset properties
+        $this->_properties = [];
+        
+        return $result;
+    }
+
+    /**
      * Query Scopes Handler
      *
      * @return bool Result
@@ -1002,5 +1024,16 @@ class Model extends \CI_Model
         }
         // No need to set as reference because $this->db is refered to &DB already.
         return $this->db;
+    }
+
+    /**
+     * ORM set property
+     *
+     * @param string $name Property key name
+     * @param mixed $value
+     */
+    public function __set($name, $value)
+    {
+        $this->_properties[$name] = $value;
     }
 }
