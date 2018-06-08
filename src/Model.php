@@ -9,7 +9,7 @@ namespace yidas;
  * @version  2.7.0.1
  * @see      https://github.com/yidas/codeigniter-model
  */
-class Model extends \CI_Model
+class Model extends \CI_Model implements \ArrayAccess
 {
     /**
      * Database Configuration for read-write master
@@ -149,6 +149,13 @@ class Model extends \CI_Model
      * @var array
      */
     private $_properties = [];
+
+    /**
+     * ORM self query
+     *
+     * @var string
+     */
+    private $_selfCondition = null;
 
     /**
      * Constructor
@@ -379,33 +386,66 @@ class Model extends \CI_Model
     }
 
     /**
-     * Return a single record array by a primary key or an array of column values with Model Filters.
+     * Return a single active record model instance by a primary key or an array of column values.
      *
      * @param mixed $condition Refer to _findByCondition() for the explanation of this parameter
-     * @return array Result
+     * @return object ActiveRecord(Model)
      * @example
      *  $post = $this->PostModel->findOne(123);
      */
     public function findOne($condition)
     {
-        $query = $this->_findByCondition($condition)->limit(1)->get();
+        $record = $this->_findByCondition($condition)
+            ->limit(1)
+            ->get()->row_array();
+        
+        // Record check
+        if (!$record) {
+            return $record;
+        }
 
-        return $query->row_array();
+        // ORM handling
+        $this->_properties = $record;
+        $this->_selfCondition = $condition;
+
+        return $this;
     }
 
     /**
-     * Return a list of records that match the specified primary key value(s) or a set of column values with Model Filters.
+     * Returns a list of active record models that match the specified primary key value(s) or a set of column values.
      *
      * @param mixed $condition Refer to _findByCondition() for the explanation 
-     * @return array Result
+     * @return array Set of ActiveRecord(Model)s
      * @example
      *  $post = $this->PostModel->findAll([3,21,135]);
      */
     public function findAll($condition)
     {
-        $query = $this->_findByCondition($condition)->get();
+        $records = $this->_findByCondition($condition)
+            ->get()->result_array();
 
-        return $query->result_array();
+        // Record check
+        if (!$records) {
+            return $records;
+        }
+
+        $set = [];
+        // Each ActiveRecord
+        foreach ((array)$records as $key => $record) {
+            // Check primary key setting
+            if (!isset($record[$this->primaryKey])) {
+                throw new Exception("Model's primary key not set", 500); 
+            }
+            // Create an ActiveRecord
+            $activeRecord = new static();
+            // ORM handling
+            $activeRecord->_properties = $record;
+            $activeRecord->_selfCondition = $record[$this->primaryKey];
+            // Collect
+            $set[] = $activeRecord;
+        }
+
+        return $set;
     }
 
     /**
@@ -808,7 +848,15 @@ class Model extends \CI_Model
      */
     public function save()
     {
-        $result = $this->insert($this->_properties);
+        // ORM status distinguishing
+        if (!$this->_selfCondition) {
+
+            $result = $this->insert($this->_properties);
+
+        } else {
+            
+            $result = $this->update($this->_properties, $this->_selfCondition);
+        }
 
         // Reset properties
         $this->_properties = [];
@@ -1035,5 +1083,72 @@ class Model extends \CI_Model
     public function __set($name, $value)
     {
         $this->_properties[$name] = $value;
+    }
+
+    /**
+     * ORM get property
+     *
+     * @param string $name Property key name
+     */
+    public function __get($name)
+    {
+        // CI parent::__get() check
+        if (property_exists(get_instance(), $name)) {
+            
+            return parent::__get($name);
+        }
+        
+        // ORM property check
+        if (!isset($this->_properties[$name])) {
+            
+            throw new \Exception("Property `{$name}` does not exist", 500);    
+        }
+        
+        return $this->_properties[$name];
+    }
+    
+    /**
+     * ArrayAccess offsetSet
+     *
+     * @param string $offset
+     * @param mixed $value
+     * @return void
+     */
+    public function offsetSet($offset, $value) {
+        
+        $this->_properties[$offset] = $value;
+    }
+
+    /**
+     * ArrayAccess offsetExists
+     *
+     * @param string $offset
+     * @return bool Result
+     */
+    public function offsetExists($offset) {
+
+        return isset($this->_properties[$offset]);
+    }
+
+    /**
+     * ArrayAccess offsetUnset
+     *
+     * @param string $offset
+     * @return void
+     */
+    public function offsetUnset($offset) {
+
+        unset($this->_properties[$offset]);
+    }
+
+    /**
+     * ArrayAccess offsetGet
+     *
+     * @param string $offset
+     * @return mixed Value of property
+     */
+    public function offsetGet($offset) {
+
+        return $this->_properties[$offset];
     }
 }
