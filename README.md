@@ -103,6 +103,23 @@ $result = $this->PostModel->update(['title' => 'CI3 Model'], $post['id']);
 $result = $this->PostModel->delete($post['id']);
 ```
 
+### ActiveRecord (ORM)
+
+```php
+$this->load->model('Posts_model');
+// Create
+$post = new Posts_model;
+$post->title = 'CI3'; //$post['title'] = 'CI3';
+$result = $post->save();
+// Update
+$post = $this->Posts_model->findOne(1);
+if ($post) {
+    echo $post['title']; //echo $post->title;
+    $post->title = 'New CI3';
+    $result = $post->save();
+}
+```
+
 ---
 
 REQUIREMENTS
