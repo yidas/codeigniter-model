@@ -852,6 +852,13 @@ class Model extends \CI_Model implements \ArrayAccess
         if (!$this->_selfCondition) {
 
             $result = $this->insert($this->_properties);
+            // Change this ActiveRecord to update mode
+            if ($result) {
+                // ORM handling
+                $insertID =  $this->getLastInsertID();
+                $this->_properties[$this->primaryKey] = $insertID;
+                $this->_selfCondition = $insertID;
+            }
 
         } else {
             
