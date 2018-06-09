@@ -144,11 +144,18 @@ class Model extends \CI_Model implements \ArrayAccess
     private $_withoutGlobalScope = false;
 
     /**
-     * ORM properties
+     * ORM read properties
      *
      * @var array
      */
-    private $_properties = [];
+    private $_readProperties = [];
+
+    /**
+     * ORM write properties
+     *
+     * @var array
+     */
+    private $_writeProperties = [];
 
     /**
      * ORM self query
@@ -405,8 +412,9 @@ class Model extends \CI_Model implements \ArrayAccess
         }
 
         // ORM handling
-        $this->_properties = $record;
-        $this->_selfCondition = $condition;
+        $this->_readProperties = $record;
+        // Primary key condition to ensure single query result 
+        $this->_selfCondition = $record[$this->primaryKey];
 
         return $this;
     }
@@ -439,7 +447,8 @@ class Model extends \CI_Model implements \ArrayAccess
             // Create an ActiveRecord
             $activeRecord = new static();
             // ORM handling
-            $activeRecord->_properties = $record;
+            $activeRecord->_readProperties = $record;
+            // Primary key condition to ensure single query result 
             $activeRecord->_selfCondition = $record[$this->primaryKey];
             // Collect
             $set[] = $activeRecord;
@@ -629,6 +638,13 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     public function delete($condition=NULL, $forceDelete=false, $attributes=[])
     {
+        // Check is Active Record
+        if ($this->_readProperties) {
+            // Reset condition and find single by self condition
+            $this->reset();
+            $condition = $this->_selfCondition;
+        }
+        
         // Model Condition by $forceDelete switch
         $query = ($forceDelete)
             ? $this->withTrashed()->_findByCondition($condition)
@@ -811,6 +827,53 @@ class Model extends \CI_Model implements \ArrayAccess
     }
 
     /**
+     * Active Record (ORM) save for insert or update
+     *
+     * @return bool Result of CI insert
+     */
+    public function save()
+    {
+        // ORM status distinguishing
+        if (!$this->_selfCondition) {
+
+            $result = $this->insert($this->_writeProperties);
+            // Change this ActiveRecord to update mode
+            if ($result) {
+                // ORM handling
+                $this->_readProperties = $this->_writeProperties;
+                $insertID =  $this->getLastInsertID();
+                $this->_readProperties[$this->primaryKey] = $insertID;
+                $this->_selfCondition = $insertID;
+            }
+
+        } else {
+            
+            $result = $this->update($this->_writeProperties, $this->_selfCondition);
+            // Check the primary key is changed
+            if ($result && isset($this->_writeProperties[$this->primaryKey])) {
+                // Primary key condition to ensure single query result 
+                $this->_selfCondition = $this->_writeProperties[$this->primaryKey];
+            }
+        }
+
+        // Reset properties
+        $this->_writeProperties = [];
+        
+        return $result;
+    }
+
+    /**
+     * Active Record transform to array record
+     *
+     * @return array
+     * @example $record = $activeRecord->toArray();
+     */
+    public function toArray()
+    {
+        return $this->_readProperties;
+    }
+
+    /**
      * Index by Key
      *
      * @param array  $array Array data for handling
@@ -839,36 +902,6 @@ class Model extends \CI_Model implements \ArrayAccess
             }
         }
         return $array = $tmp;
-    }
-
-    /**
-     * ORM save
-     *
-     * @return bool Result of CI insert
-     */
-    public function save()
-    {
-        // ORM status distinguishing
-        if (!$this->_selfCondition) {
-
-            $result = $this->insert($this->_properties);
-            // Change this ActiveRecord to update mode
-            if ($result) {
-                // ORM handling
-                $insertID =  $this->getLastInsertID();
-                $this->_properties[$this->primaryKey] = $insertID;
-                $this->_selfCondition = $insertID;
-            }
-
-        } else {
-            
-            $result = $this->update($this->_properties, $this->_selfCondition);
-        }
-
-        // Reset properties
-        $this->_properties = [];
-        
-        return $result;
     }
 
     /**
@@ -1089,7 +1122,7 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     public function __set($name, $value)
     {
-        $this->_properties[$name] = $value;
+        $this->_writeProperties[$name] = $value;
     }
 
     /**
@@ -1106,12 +1139,19 @@ class Model extends \CI_Model implements \ArrayAccess
         }
         
         // ORM property check
-        if (!isset($this->_properties[$name])) {
+        if (isset($this->_writeProperties[$name]) ) {
             
-            throw new \Exception("Property `{$name}` does not exist", 500);    
+            return $this->_writeProperties[$name]; 
         }
-        
-        return $this->_properties[$name];
+        else if (isset($this->_readProperties[$name])) {
+            
+            return $this->_readProperties[$name]; 
+        } 
+        else {
+            throw new \Exception("Property `{$name}` does not exist", 500);  
+        }
+
+        return;
     }
     
     /**
@@ -1123,7 +1163,7 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     public function offsetSet($offset, $value) {
         
-        $this->_properties[$offset] = $value;
+        $this->_writeProperties[$offset] = $value;
     }
 
     /**
@@ -1134,7 +1174,7 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     public function offsetExists($offset) {
 
-        return isset($this->_properties[$offset]);
+        return isset($this->_readProperties[$offset]);
     }
 
     /**
@@ -1145,7 +1185,7 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     public function offsetUnset($offset) {
 
-        unset($this->_properties[$offset]);
+        unset($this->_writeProperties[$offset]);
     }
 
     /**
@@ -1156,6 +1196,21 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     public function offsetGet($offset) {
 
-        return $this->_properties[$offset];
+        if (isset($this->_writeProperties[$offset])) {
+            
+            return $this->_writeProperties[$offset];
+        }
+        elseif (isset($this->_readProperties[$offset]) ) {
+            
+            return $this->_readProperties[$offset];
+        }
+        else {
+            // Trace debug
+            $lastFile = debug_backtrace()[0]['file'];
+            $lastLine = debug_backtrace()[0]['line'];
+            trigger_error("Undefined index: " . get_called_class() . "->{$offset} called by {$lastFile}:{$lastLine}", E_USER_NOTICE);
+
+            return null;
+        }
     }
 }

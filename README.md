@@ -6,7 +6,7 @@
     <br>
 </p>
 
-CodeIgniter 3 ORM Base Model supported Read & Write Database Connections
+CodeIgniter 3 Active Record (ORM) Standard Model supported Read & Write Connections
 
 [![Latest Stable Version](https://poser.pugx.org/yidas/codeigniter-model/v/stable?format=flat-square)](https://packagist.org/packages/yidas/codeigniter-model)
 [![Latest Unstable Version](https://poser.pugx.org/yidas/codeigniter-model/v/unstable?format=flat-square)](https://packagist.org/packages/yidas/codeigniter-model)
@@ -15,7 +15,7 @@ CodeIgniter 3 ORM Base Model supported Read & Write Database Connections
 Features
 --------
 
-- ***Elegant patterns** as Laravel Eloquent & Yii2 Active Record (ORM is not yet)*
+- ***Elegant patterns** as Laravel Eloquent ORM & Yii2 Active Record*
 
 - ***Codeigniter Query Builder** integration*
 
@@ -37,27 +37,36 @@ OUTLINE
   - [Primary Keys](#primary-keys)
   - [Timestamps](#timestamps)
   - [Database Connection](#database-connection)
-- [Usage](#usage)
-  - [find()](#find)
-    - [Query Builder Implementation](#query-builder-implementation)
-  - [findOne()](#findone)
-  - [findAll()](#findall)
-  - [reset()](#reset)
-  - [insert()](#insert)
-  - [batchInsert()](#batchinsert)
-  - [update()](#update)
-  - [batchUpdate()](#batchupdate)
-  - [replace()](#replace)
-  - [delete()](#delete)
-  - [getLastInsertID()](#getlastinsertid)
-  - [getAffectedRows()](#getaffectedrows)
-  - [setAlias()](#setalias)
+- [Basic Usage](#basic-usage)
+  - [Methods](#method)
+    - [find()](#find)
+      - [Query Builder Implementation](#query-builder-implementation)
+    - [reset()](#reset)
+    - [insert()](#insert)
+    - [batchInsert()](#batchinsert)
+    - [update()](#update)
+    - [batchUpdate()](#batchupdate)
+    - [replace()](#replace)
+    - [delete()](#delete)
+    - [getLastInsertID()](#getlastinsertid)
+    - [getAffectedRows()](#getaffectedrows)
+    - [setAlias()](#setalias)
+- [Active Record (ORM)](#active-record-orm)
+  - [Inserts](#insert)
+  - [Updates](#update)
+  - [Deletes](#deletes)
+  - [Accessing Data](#accessing-data)
+  - [Methods](#method-1)
+    - [findone()](#findone)
+    - [findAll()](#findall)
+    - [save()](#save)
+    - [toArray()](#toarray)
 - [Soft Deleted](#soft-deleted)
   - [Configuration](#configuration-1)
-  - [Usage](#usage-1)
+  - [Methods](#method-2)
 - [Query Scopes](#query-scopes)
   - [Configuration](#configuration-2)
-  - [Usage](#usage-2)
+  - [Methods](#method-3)
 - [Read & Write Connections](#read--write-connections)
   - [Configuration](#configuration-3)
   - [Load Balancing for Databases](#load-balancing-for-databases)
@@ -70,17 +79,31 @@ OUTLINE
 DEMONSTRATION
 -------------
 
-### Find One
+### ActiveRecord (ORM)
 
 ```php
-$this->load->model('post_model', 'PostModel');
+$this->load->model('Posts_model');
 
-$post = $this->PostModel->findOne(123);
+// Create an Active Record
+$post = new Posts_model;
+$post->title = 'CI3'; // Equivalent to `$post['title'] = 'CI3';`
+$post->save();
+
+// Update the Active Record found by primary key
+$post = $this->Posts_model->findOne(1);
+if ($post) {
+    $oldTitle = $post->title; // Equivalent to `$oldTitle = $post['title'];`
+    $post->title = 'New CI3';
+    $post->save();
+}
 ```
 
 ### Find with Query Builder
+
+The Model would defined database coonnections and table itself.
+
 ```php
-$posts = $this->PostModel->find()
+$records = $this->Posts_model->find()
   ->where('is_public', '1')
   ->limit(0,25)
   ->order_by('id')
@@ -91,33 +114,19 @@ $posts = $this->PostModel->find()
 ### CRUD
 
 ```php
-$result = $this->PostModel->insert(['title' => 'Codeigniter Model']);
+$result = $this->Posts_model->insert(['title' => 'Codeigniter Model']);
+
 // Find out the record which just be inserted
-$post = $this->PostModel->find()
+$record = $this->Posts_model->find()
   ->order_by('id', 'DESC')
   ->get()
   ->row_array();
+  
 // Update the record
-$result = $this->PostModel->update(['title' => 'CI3 Model'], $post['id']);
+$result = $this->Posts_model->update(['title' => 'CI3 Model'], $record['id']);
+
 // Delete the record
-$result = $this->PostModel->delete($post['id']);
-```
-
-### ActiveRecord (ORM)
-
-```php
-$this->load->model('Posts_model');
-// Create
-$post = new Posts_model;
-$post->title = 'CI3'; //$post['title'] = 'CI3';
-$result = $post->save();
-// Update
-$post = $this->Posts_model->findOne(1);
-if ($post) {
-    echo $post['title']; //echo $post->title;
-    $post->title = 'New CI3';
-    $result = $post->save();
-}
+$result = $this->Posts_model->delete($record['id']);
 ```
 
 ---
@@ -199,7 +208,7 @@ $post = $this->PostModel->findOne(123);
 
 ---
 
-Defining Models
+DEFINING MODELS
 ---------------
 
 To get started, let's create an model extends `yidas\Model` or through `My_model`, then define each model suitably.
@@ -248,6 +257,8 @@ class My_model extends yidas\Model
     protected $primaryKey = "sn";
 }
 ```
+
+> Correct primary key setting of Model is neceesary for Active Record (ORM). 
 
 ### Timestamps
 
@@ -309,8 +320,8 @@ class My_model extends yidas\Model
 
 ---
 
-USAGE
------
+BASIC USAGE
+-----------
 
 Above usage examples are calling Models out of model, for example in controller:
 
@@ -320,7 +331,9 @@ $this->load->model('post_model', 'Model');
 
 If you call methods in Model itself, just calling `$this` as model. For example, `$this->find()...` for `find()`;
 
-### find()
+### Methods
+
+#### `find()`
 
 Create an existent CI Query Builder instance with Model features for query purpose.
 
@@ -344,7 +357,7 @@ $records = $this->Model->find(true)
 $this->Model->withAll()->find();
 ```
 
-#### Query Builder Implementation
+##### Query Builder Implementation
 
 You could assign Query Builder as a variable to handle add-on conditions instead of using `$this->Model->getBuilder()`.
 
@@ -356,23 +369,7 @@ if ($filter) {
 $records = $queryBuilder->get()->result_array();
 ```
 
-### findOne()
-
-Return a single record array by a primary key or an array of column values with Model Filters.
-
-```php
-$post = $this->Model->findOne(123);
-```
-
-### findAll()
-
-Return a list of records that match the specified primary key value(s) or a set of column values with Model Filters.
-
-```php
-$post = $this->Model->findAll([3,21,135]);
-```
-
-### reset()
+#### `reset()`
 
 reset an CI Query Builder instance with Model.
 
@@ -380,7 +377,7 @@ reset an CI Query Builder instance with Model.
 $this->Model->reset()->find();
 ```
 
-### insert()
+#### `insert()`
 
 Insert a row with Timestamps feature into the associated database table using the attribute values of this record.
 
@@ -391,7 +388,7 @@ $result = $this->Model->insert([
 ]);
 ```
 
-### batchInsert()
+#### `batchInsert()`
 
 Insert a batch of rows with Timestamps feature into the associated database table using the attribute values of this record.
 
@@ -402,7 +399,7 @@ $result = $this->Model->batchInsert([
 ]);
 ```
 
-### replace()
+#### `replace()`
 
 Replace a row with Timestamps feature into the associated database table using the attribute values of this record.
 
@@ -414,7 +411,7 @@ $result = $this->Model->replace([
 ]);
 ```
 
-### update()
+#### `update()`
 
 Save the changes with Timestamps feature to the selected record(s) into the associated database table.
 
@@ -432,7 +429,7 @@ $result = $this->Model->update(['status'=>'off']);
 > 
 > `$this->Model->find()->where('id', 123)->update('table', ['status'=>'off']);`
 
-### batchUpdate()
+#### `batchUpdate()`
 
 Update a batch of update queries into combined query strings.
 
@@ -443,7 +440,7 @@ $result = $this->Model->batchUpdate([
 ]);
 ```
 
-### delete()
+#### `delete()`
 
 Delete the selected record(s) with Timestamps feature into the associated database table.
 
@@ -462,7 +459,7 @@ $result = $this->Model->delete();
 $this->Model->delete(123, true);
 ```
 
-### getLastInsertID()
+#### `getLastInsertID()`
 
 Get the insert ID number when performing database inserts.
 
@@ -471,7 +468,7 @@ $result = $this->Model->insert(['name' => 'Nick Tsai']);
 $lastInsertID = $this->Model->getLastInsertID();
 ```
 
-### getAffectedRows()
+#### `getAffectedRows()`
 
 Get the number of affected rows when doing “write” type queries (insert, update, etc.).
 
@@ -480,7 +477,7 @@ $result = $this->Model->update(['name' => 'Nick Tsai'], 32);
 $affectedRows = $this->Model->getAffectedRows();
 ```
 
-### setAlias()
+#### `setAlias()`
 
 Set table alias
 
@@ -488,6 +485,112 @@ Set table alias
 $query = $this->Model->setAlias("A1")
     ->find()
     ->join('table2 AS A2', 'A1.id = A2.id');
+```
+
+---
+
+ACTIVE RECORD (ORM)
+-------------------
+
+Active Record provides an object-oriented interface for accessing and manipulating data stored in databases. An Active Record Model class is associated with a database table, an Active Record instance corresponds to a row of that table, and an attribute of an Active Record instance represents the value of a particular column in that row.
+
+> Active Record (ORM) supported events such as timestamp for insert and update.
+
+### Inserts
+
+To create a new record in the database, create a new model instance, set attributes on the model, then call the `save` method:
+
+```php
+$this->load->model('Posts_model');
+
+$post = new Posts_model;
+$post->title = 'CI3';
+$result = $post->save();
+```
+
+### Updates
+
+The `save` method may also be used to update models that already exist in the database. To update a model, you should retrieve it, set any attributes you wish to update, and then call the `save` method:
+
+```php
+$this->load->model('Posts_model');
+
+$post = $this->Posts_model->findOne(1);
+if ($post) {
+    $post->title = 'New CI3';
+    $result = $post->save();
+}
+```
+
+### Deletes
+
+To delete a active record, call the `delete` method on a model instance:
+
+```php
+$this->load->model('Posts_model');
+
+$post = $this->Posts_model->findOne(1);
+$result = $post->delete();
+```
+
+> `delete()` supports soft deleted and points to self if is Active Record.
+
+### Accessing Data
+
+You could access the column values by accessing the attributes of the Active Record instances likes `$activeRecord->attribute`, or get by array key likes `$activeRecord['attribute']`.
+
+```php
+$this->load->model('Posts_model');
+
+// Set attributes
+$post = new Posts_model;
+$post->title = 'CI3';
+$post['subtitle'] = 'PHP';
+$post->save();
+
+// Get attributes
+$post = $this->Posts_model->findOne(1);
+$title = $post->title;
+$subtitle = $post['subtitle'];
+```
+
+### Methods
+
+#### `findOne()`
+
+Return a single active record model instance by a primary key or an array of column values.
+
+```php
+// Find a single active record whose primary key value is 10
+$activeRecord = $this->Model->findOne(10);
+
+// Find the first active record whose type is 'A' and whose status is 1
+$activeRecord = $this->Model->findOne(['type' => 'A', 'status' => 1]);
+```
+
+#### `findAll()`
+
+Returns a list of active record models that match the specified primary key value(s) or a set of column values.
+
+```php
+// Find the active records whose primary key value is 10, 11 or 12.
+$activeRecords = $this->Model->findAll([10, 11, 12]);
+
+// Find the active recordd whose type is 'A' and whose status is 1
+$activeRecord = $this->Model->findAll(['type' => 'A', 'status' => 1]);
+```
+
+#### `save()`
+
+Active Record (ORM) save for insert or update
+
+
+#### `toArray()`
+
+Active Record transform to array record
+
+```
+$record = $activeRecord->toArray();
 ```
 
 ---
@@ -535,9 +638,9 @@ class Log_model extends My_model
 }
 ```
 
-### Usage
+### Methods
 
-#### forceDelete()
+#### `forceDelete()`
 
 Force Delete the selected record(s) with Timestamps feature into the associated database table.
 
@@ -551,8 +654,7 @@ $this->Model->find()->where('id', 123);
 $result = $this->Model->forceDelete();
 ```
 
-
-#### restore()
+#### `restore()`
 
 Restore SOFT_DELETED field value to the selected record(s) into the associated database table..
 
@@ -566,7 +668,7 @@ $this->Model->withTrashed()->find()->where('id', 123);
 $this->Model->restore();
 ```
 
-#### withTrashed()
+#### `withTrashed()`
 
 Without [SOFT DELETED](#soft-deleted) query conditions for next `find()`
 
@@ -606,9 +708,9 @@ class My_model extends yidas\Model
 
 After overriding that, the `My_model` will constrain that scope in every query from `find()`, unless you remove the query scope before a find query likes `withoutGlobalScopes()`.
 
-### Usage
+### Methods
 
-#### withoutGlobalScopes()
+#### `withoutGlobalScopes()`
 
 Without Global Scopes query conditions for next find()
 
@@ -616,7 +718,7 @@ Without Global Scopes query conditions for next find()
 $this->Model->withoutGlobalScopes()->find();
 ```
 
-#### withAll()
+#### `withAll()`
 
 Without all query conditions ([SOFT DELETED](#soft-deleted) & [QUERY SCOPES](#query-scope)) for next `find()`
 
