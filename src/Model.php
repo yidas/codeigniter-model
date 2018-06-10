@@ -9,7 +9,7 @@ namespace yidas;
  * @version  2.7.0.1
  * @see      https://github.com/yidas/codeigniter-model
  */
-class Model extends \CI_Model
+class Model extends \CI_Model implements \ArrayAccess
 {
     /**
      * Database Configuration for read-write master
@@ -142,6 +142,27 @@ class Model extends \CI_Model
      * @var bool Global Scope one time switch
      */
     private $_withoutGlobalScope = false;
+
+    /**
+     * ORM read properties
+     *
+     * @var array
+     */
+    private $_readProperties = [];
+
+    /**
+     * ORM write properties
+     *
+     * @var array
+     */
+    private $_writeProperties = [];
+
+    /**
+     * ORM self query
+     *
+     * @var string
+     */
+    private $_selfCondition = null;
 
     /**
      * Constructor
@@ -372,33 +393,68 @@ class Model extends \CI_Model
     }
 
     /**
-     * Return a single record array by a primary key or an array of column values with Model Filters.
+     * Return a single active record model instance by a primary key or an array of column values.
      *
      * @param mixed $condition Refer to _findByCondition() for the explanation of this parameter
-     * @return array Result
+     * @return object ActiveRecord(Model)
      * @example
      *  $post = $this->PostModel->findOne(123);
      */
     public function findOne($condition)
     {
-        $query = $this->_findByCondition($condition)->limit(1)->get();
+        $record = $this->_findByCondition($condition)
+            ->limit(1)
+            ->get()->row_array();
+        
+        // Record check
+        if (!$record) {
+            return $record;
+        }
 
-        return $query->row_array();
+        // ORM handling
+        $this->_readProperties = $record;
+        // Primary key condition to ensure single query result 
+        $this->_selfCondition = $record[$this->primaryKey];
+
+        return $this;
     }
 
     /**
-     * Return a list of records that match the specified primary key value(s) or a set of column values with Model Filters.
+     * Returns a list of active record models that match the specified primary key value(s) or a set of column values.
      *
      * @param mixed $condition Refer to _findByCondition() for the explanation 
-     * @return array Result
+     * @return array Set of ActiveRecord(Model)s
      * @example
      *  $post = $this->PostModel->findAll([3,21,135]);
      */
     public function findAll($condition)
     {
-        $query = $this->_findByCondition($condition)->get();
+        $records = $this->_findByCondition($condition)
+            ->get()->result_array();
 
-        return $query->result_array();
+        // Record check
+        if (!$records) {
+            return $records;
+        }
+
+        $set = [];
+        // Each ActiveRecord
+        foreach ((array)$records as $key => $record) {
+            // Check primary key setting
+            if (!isset($record[$this->primaryKey])) {
+                throw new Exception("Model's primary key not set", 500); 
+            }
+            // Create an ActiveRecord
+            $activeRecord = new static();
+            // ORM handling
+            $activeRecord->_readProperties = $record;
+            // Primary key condition to ensure single query result 
+            $activeRecord->_selfCondition = $record[$this->primaryKey];
+            // Collect
+            $set[] = $activeRecord;
+        }
+
+        return $set;
     }
 
     /**
@@ -582,6 +638,13 @@ class Model extends \CI_Model
      */
     public function delete($condition=NULL, $forceDelete=false, $attributes=[])
     {
+        // Check is Active Record
+        if ($this->_readProperties) {
+            // Reset condition and find single by self condition
+            $this->reset();
+            $condition = $this->_selfCondition;
+        }
+        
         // Model Condition by $forceDelete switch
         $query = ($forceDelete)
             ? $this->withTrashed()->_findByCondition($condition)
@@ -761,6 +824,53 @@ class Model extends \CI_Model
         $this->withoutGlobalScopes();
 
         return $this;
+    }
+
+    /**
+     * Active Record (ORM) save for insert or update
+     *
+     * @return bool Result of CI insert
+     */
+    public function save()
+    {
+        // ORM status distinguishing
+        if (!$this->_selfCondition) {
+
+            $result = $this->insert($this->_writeProperties);
+            // Change this ActiveRecord to update mode
+            if ($result) {
+                // ORM handling
+                $this->_readProperties = $this->_writeProperties;
+                $insertID =  $this->getLastInsertID();
+                $this->_readProperties[$this->primaryKey] = $insertID;
+                $this->_selfCondition = $insertID;
+            }
+
+        } else {
+            
+            $result = $this->update($this->_writeProperties, $this->_selfCondition);
+            // Check the primary key is changed
+            if ($result && isset($this->_writeProperties[$this->primaryKey])) {
+                // Primary key condition to ensure single query result 
+                $this->_selfCondition = $this->_writeProperties[$this->primaryKey];
+            }
+        }
+
+        // Reset properties
+        $this->_writeProperties = [];
+        
+        return $result;
+    }
+
+    /**
+     * Active Record transform to array record
+     *
+     * @return array
+     * @example $record = $activeRecord->toArray();
+     */
+    public function toArray()
+    {
+        return $this->_readProperties;
     }
 
     /**
@@ -1002,5 +1112,105 @@ class Model extends \CI_Model
         }
         // No need to set as reference because $this->db is refered to &DB already.
         return $this->db;
+    }
+
+    /**
+     * ORM set property
+     *
+     * @param string $name Property key name
+     * @param mixed $value
+     */
+    public function __set($name, $value)
+    {
+        $this->_writeProperties[$name] = $value;
+    }
+
+    /**
+     * ORM get property
+     *
+     * @param string $name Property key name
+     */
+    public function __get($name)
+    {
+        // CI parent::__get() check
+        if (property_exists(get_instance(), $name)) {
+            
+            return parent::__get($name);
+        }
+        
+        // ORM property check
+        if (isset($this->_writeProperties[$name]) ) {
+            
+            return $this->_writeProperties[$name]; 
+        }
+        else if (isset($this->_readProperties[$name])) {
+            
+            return $this->_readProperties[$name]; 
+        } 
+        else {
+            throw new \Exception("Property `{$name}` does not exist", 500);  
+        }
+
+        return;
+    }
+    
+    /**
+     * ArrayAccess offsetSet
+     *
+     * @param string $offset
+     * @param mixed $value
+     * @return void
+     */
+    public function offsetSet($offset, $value) {
+        
+        $this->_writeProperties[$offset] = $value;
+    }
+
+    /**
+     * ArrayAccess offsetExists
+     *
+     * @param string $offset
+     * @return bool Result
+     */
+    public function offsetExists($offset) {
+
+        return isset($this->_readProperties[$offset]);
+    }
+
+    /**
+     * ArrayAccess offsetUnset
+     *
+     * @param string $offset
+     * @return void
+     */
+    public function offsetUnset($offset) {
+
+        unset($this->_writeProperties[$offset]);
+    }
+
+    /**
+     * ArrayAccess offsetGet
+     *
+     * @param string $offset
+     * @return mixed Value of property
+     */
+    public function offsetGet($offset) {
+
+        if (isset($this->_writeProperties[$offset])) {
+            
+            return $this->_writeProperties[$offset];
+        }
+        elseif (isset($this->_readProperties[$offset]) ) {
+            
+            return $this->_readProperties[$offset];
+        }
+        else {
+            // Trace debug
+            $lastFile = debug_backtrace()[0]['file'];
+            $lastLine = debug_backtrace()[0]['line'];
+            trigger_error("Undefined index: " . get_called_class() . "->{$offset} called by {$lastFile}:{$lastLine}", E_USER_NOTICE);
+
+            return null;
+        }
     }
 }
