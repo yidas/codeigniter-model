@@ -1053,17 +1053,16 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     protected function _addSoftDeletedCondition()
     {
-        if (!$this->_withoutSoftDeletedScope 
-            && static::SOFT_DELETED 
-            && isset($this->softDeletedFalseValue)) {
-            
-            $this->_dbr->where($this->_field(static::SOFT_DELETED), 
-                $this->softDeletedFalseValue);
-
+        if ($this->_withoutSoftDeletedScope) {
             // Reset SOFT_DELETED switch
             $this->_withoutSoftDeletedScope = false;
+        } 
+        elseif (static::SOFT_DELETED && isset($this->softDeletedFalseValue)) {
+            // Add condition
+            $this->_dbr->where($this->_field(static::SOFT_DELETED), 
+            $this->softDeletedFalseValue);
         }
-
+        
         return true;
     }
 
@@ -1075,12 +1074,13 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     protected function _addGlobalScopeCondition()
     {
-        if (!$this->_withoutGlobalScope) {
-            
-            $this->_globalScopes();
-
+        if ($this->_withoutGlobalScope) {
             // Reset Global Switch switch
             $this->_withoutGlobalScope = false;
+
+        } else {
+            // Default to apply global scopes
+            $this->_globalScopes();
         }
 
         return true;
