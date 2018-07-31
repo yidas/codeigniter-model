@@ -342,7 +342,7 @@ class Model extends \CI_Model implements \ArrayAccess
     /**
      * Create an existent CI Query Builder instance with Model features for query purpose.
      *
-     * @param bookl $withAll withAll() switch helper
+     * @param boolean $withAll withAll() switch helper
      * @return object CI_DB_query_builder
      * @example 
      *  $posts = $this->PostModel->find()
@@ -573,6 +573,7 @@ class Model extends \CI_Model implements \ArrayAccess
      * Update a batch of update queries into combined query strings.
      *
      * @param array $dataSet [[[Attributes], [Condition]], ]
+     * @param boolean $withAll withAll() switch helper
      * @param integer $maxLenth MySQL max_allowed_packet
      * @return integer Count of sucessful query pack(s)
      * @example 
@@ -581,7 +582,7 @@ class Model extends \CI_Model implements \ArrayAccess
      *      [['title'=>'A2', 'modified'=>'1'], ['id'=>2]],
      *  ];);
      */
-    public function batchUpdate(Array $dataSet, $maxLength=4*1024*1024)
+    public function batchUpdate(Array $dataSet, $withAll=false, $maxLength=4*1024*1024)
     {
         $count = 0;
         $sqlBatch = '';
@@ -591,6 +592,10 @@ class Model extends \CI_Model implements \ArrayAccess
             // Data format
             list($attributes, $condition) = $each;
 
+            // WithAll helper
+            if ($withAll===true) {
+                $this->withAll();
+            }
             // Model Condition
             $query = $this->_findByCondition($condition);
 
