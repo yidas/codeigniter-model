@@ -574,7 +574,7 @@ class Model extends \CI_Model implements \ArrayAccess
      *
      * @param array $dataSet [[[Attributes], [Condition]], ]
      * @param integer $maxLenth MySQL max_allowed_packet
-     * @return integer Count of sucessful query 
+     * @return integer Count of sucessful query pack(s)
      * @example 
      *  $result = $this->Model->batchUpdate([
      *      [['title'=>'A1', 'modified'=>'1'], ['id'=>1]],
@@ -600,8 +600,10 @@ class Model extends \CI_Model implements \ArrayAccess
             $sql = $this->_dbr->set($attributes)->get_compiled_update();
             $this->_dbr->reset_query();
 
-            // Max length process
-            if (strlen($sqlBatch) >= $maxLength) {
+            // Last batch check: First single query & Max length
+            // The first single query needs to be sent ahead to prevent the limitation that PDO transaction could not 
+            // use multiple SQL line in one query, but allows if the multi-line query is behind a single query. 
+            if (($count==0 && $sqlBatch) || strlen($sqlBatch)>=$maxLength) {
                 // Each batch of query
                 $result = $this->_db->query($sqlBatch);
                 $sqlBatch = "";
