@@ -6,7 +6,7 @@ namespace yidas;
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  2.9.0
+ * @version  2.9.1
  * @see      https://github.com/yidas/codeigniter-model
  */
 class Model extends \CI_Model implements \ArrayAccess
@@ -992,9 +992,11 @@ class Model extends \CI_Model implements \ArrayAccess
         // Reset Query if condition existed
         if ($condition) {
             $this->_dbr->reset_query();
+            $query = $this->find();
+        } else {
+            // Support for previous find(), no need to find() again
+            $query = $this->_dbr;
         }
-
-        $query = $this->find();
 
         // Check condition type
         if (is_array($condition)) {
@@ -1017,6 +1019,12 @@ class Model extends \CI_Model implements \ArrayAccess
         elseif (is_numeric($condition) || is_string($condition)) {
             /* Single Primary Key */
             $query->where($this->_field($this->primaryKey), $condition);
+        }
+        else {
+            // No condition situation needs to enable where protection
+            $sql = $this->_dbr->get_compiled_select('', false); // No reset query
+            if (stripos($sql, 'where')===false)
+                throw new Exception("You could not write Model without any condition! Use ->where('1') at least.", 400);
         }
 
         return $query;

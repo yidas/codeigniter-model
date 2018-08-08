@@ -38,7 +38,7 @@ OUTLINE
   - [Timestamps](#timestamps)
   - [Database Connection](#database-connection)
 - [Basic Usage](#basic-usage)
-  - [Methods](#method)
+  - [Methods](#methods)
     - [find()](#find)
       - [Query Builder Implementation](#query-builder-implementation)
     - [reset()](#reset)
@@ -56,7 +56,7 @@ OUTLINE
   - [Updates](#update)
   - [Deletes](#deletes)
   - [Accessing Data](#accessing-data)
-  - [Methods](#method-1)
+  - [Methods](#methods-1)
     - [findone()](#findone)
     - [findAll()](#findall)
     - [save()](#save)
@@ -105,7 +105,7 @@ The Model would defined database coonnections and table itself.
 ```php
 $records = $this->Posts_model->find()
   ->where('is_public', '1')
-  ->limit(0,25)
+  ->limit(25)
   ->order_by('id')
   ->get()
   ->result_array();
@@ -340,7 +340,7 @@ Create an existent CI Query Builder instance with Model features for query purpo
 ```php
 $records = $this->Model->find()
     ->where('is_public', '1')
-    ->limit(0,25)
+    ->limit(25)
     ->order_by('id')
     ->get()
     ->result_array();
