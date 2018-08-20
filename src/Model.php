@@ -400,7 +400,11 @@ class Model extends \CI_Model implements \ArrayAccess
      * @param mixed $condition Refer to _findByCondition() for the explanation of this parameter
      * @return object ActiveRecord(Model)
      * @example
-     *  $post = $this->PostModel->findOne(123);
+     *  $post = $this->Model->findOne(123);
+     * @example
+     *  // Query builder ORM usage
+     *  $this->Model->find()->where('id', 123);
+     *  $this->Model->findOne();
      */
     public function findOne($condition=[])
     {
@@ -428,6 +432,10 @@ class Model extends \CI_Model implements \ArrayAccess
      * @return array Set of ActiveRecord(Model)s
      * @example
      *  $post = $this->PostModel->findAll([3,21,135]);
+     * @example
+     *  // Query builder ORM usage
+     *  $this->Model->find()->where_in('id', [3,21,135]);
+     *  $this->Model->findAll();
      */
     public function findAll($condition=[])
     {

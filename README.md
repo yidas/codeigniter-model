@@ -623,6 +623,10 @@ $activeRecord = $this->Model->findOne(10);
 
 // Find the first active record whose type is 'A' and whose status is 1
 $activeRecord = $this->Model->findOne(['type' => 'A', 'status' => 1]);
+
+// Query builder ORM usage
+$this->Model->find()->where('id', 10);
+$this->Model->findOne();
 ```
 
 #### `findAll()`
@@ -640,6 +644,10 @@ $activeRecords = $this->Model->findAll([10, 11, 12]);
 
 // Find the active recordd whose type is 'A' and whose status is 1
 $activeRecord = $this->Model->findAll(['type' => 'A', 'status' => 1]);
+
+// Query builder ORM usage
+$this->Model->find()->where_in('id', [10, 11, 12]);
+$this->Model->findAll();
 ```
 
 #### `save()`
