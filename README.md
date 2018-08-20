@@ -12,6 +12,8 @@ CodeIgniter 3 Active Record (ORM) Standard Model supported Read & Write Connecti
 [![Latest Unstable Version](https://poser.pugx.org/yidas/codeigniter-model/v/unstable?format=flat-square)](https://packagist.org/packages/yidas/codeigniter-model)
 [![License](https://poser.pugx.org/yidas/codeigniter-model/license?format=flat-square)](https://packagist.org/packages/yidas/codeigniter-model)
 
+This ORM Model extension is collected into [yidas/codeigniter-pack](https://github.com/yidas/codeigniter-pack) which is a complete solution for Codeigniter framework.
+
 Features
 --------
 
@@ -613,7 +615,7 @@ $subtitle = $post['subtitle'];
 Return a single active record model instance by a primary key or an array of column values.
 
 ```php
-public object findOne(array $condition)
+public object findOne(array $condition=[])
 ```
 
 *Example:*
@@ -634,7 +636,7 @@ $this->Model->findOne();
 Returns a list of active record models that match the specified primary key value(s) or a set of column values.
 
 ```php
-public array findAll(array $condition)
+public array findAll(array $condition=[])
 ```
 
 *Example:*
@@ -723,6 +725,11 @@ class Log_model extends My_model
 Force Delete the selected record(s) with Timestamps feature into the associated database table.
 
 ```php
+public boolean forceDelete($condition=null)
+```
+
+*Example:*
+```php
 $result = $this->Model->forceDelete(123)
 ```
 
@@ -734,8 +741,13 @@ $result = $this->Model->forceDelete();
 
 #### `restore()`
 
-Restore SOFT_DELETED field value to the selected record(s) into the associated database table..
+Restore SOFT_DELETED field value to the selected record(s) into the associated database table.
 
+```php
+public boolean restore($condition=null)
+```
+
+*Example:*
 ```php
 $result = $this->Model->restore(123)
 ```
@@ -750,6 +762,11 @@ $this->Model->restore();
 
 Without [SOFT DELETED](#soft-deleted) query conditions for next `find()`
 
+```php
+public self withTrashed()
+```
+
+*Example:*
 ```php
 $this->Model->withTrashed()->find();
 ```
@@ -793,6 +810,11 @@ After overriding that, the `My_model` will constrain that scope in every query f
 Without Global Scopes query conditions for next find()
 
 ```php
+public self withoutGlobalScopes()
+```
+
+*Example:*
+```php
 $this->Model->withoutGlobalScopes()->find();
 ```
 
@@ -802,6 +824,11 @@ Without all query conditions ([SOFT DELETED](#soft-deleted) & [QUERY SCOPES](#qu
 
 That is, with all data set of Models for next `find()`
 
+```php
+public self withAll()
+```
+
+*Example:*
 ```php
 $this->Model->withAll()->find();
 ```
@@ -929,11 +956,10 @@ HELPERS
 Index by Key
 
 ```php
-array indexBy(Array & $array [, Integer $key] [, Boolean $obj2Array])
+public array indexBy(array & $array, Integer $key=null, Boolean $obj2Array=false)
 ```
 
-Example:
-
+*Example:*
 ```php
 $records = $this->Model->findAll();
 $this->Model->indexBy($records, 'sn');

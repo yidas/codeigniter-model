@@ -167,6 +167,13 @@ class Model extends \CI_Model implements \ArrayAccess
     private $_selfCondition = null;
 
     /**
+     * Clean next find one time setting
+     *
+     * @var boolean
+     */
+    private $_cleanNextFind = false;
+
+    /**
      * Constructor
      */
     function __construct()
@@ -329,7 +336,7 @@ class Model extends \CI_Model implements \ArrayAccess
     }
 
     /**
-     * Set table alias
+     * Set table alias for next find()
      *
      * @param string Table alias name
      * @return self
@@ -337,6 +344,9 @@ class Model extends \CI_Model implements \ArrayAccess
     public function setAlias($alias)
     {
         $this->alias = $alias;
+
+        // Turn off cleaner to prevent continuous setting 
+        $this->_cleanNextFind = false;
         
         return $this;
     }
@@ -365,6 +375,15 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     public function find($withAll=false)
     {
+        // One time setting reset mechanism
+        if ($this->_cleanNextFind === true) {
+            // Reset alias
+            $this->setAlias(null);
+        } else {
+            // Turn on clean for next find
+            $this->_cleanNextFind = true;
+        }
+        
         // Alias option for FROM
         $sqlFrom = ($this->alias) ? "{$this->table} AS {$this->alias}" : $this->table;
         
