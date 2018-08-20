@@ -2,6 +2,8 @@
 
 namespace yidas;
 
+use Exception;
+
 /**
  * Base Model
  *
@@ -400,7 +402,7 @@ class Model extends \CI_Model implements \ArrayAccess
      * @example
      *  $post = $this->PostModel->findOne(123);
      */
-    public function findOne($condition)
+    public function findOne($condition=[])
     {
         $record = $this->_findByCondition($condition)
             ->limit(1)
@@ -427,7 +429,7 @@ class Model extends \CI_Model implements \ArrayAccess
      * @example
      *  $post = $this->PostModel->findAll([3,21,135]);
      */
-    public function findAll($condition)
+    public function findAll($condition=[])
     {
         $records = $this->_findByCondition($condition)
             ->get()->result_array();
@@ -974,7 +976,9 @@ class Model extends \CI_Model implements \ArrayAccess
      * This method is internally called by findOne(), findAll(), update(), delete(), etc.
      * The query will be reset to start a new scope if the condition is used.
      * 
-     * @param mixed Primary key value or a set of column values
+     * @param mixed Primary key value or a set of column values. If is null, it would be used for  
+     *  previous find() method, which means it would not rebuild find() so it would check and 
+     *  protect the SQL statement.
      * @return object CI_DB_query_builder
      * @internal
      * @example 
@@ -987,10 +991,10 @@ class Model extends \CI_Model implements \ArrayAccess
      *  // find the first customer whose age is 30 and whose status is 1
      *  $this->_findByCondition(['age' => 30, 'status' => 1]);
      */
-    protected function _findByCondition($condition=NULL)
+    protected function _findByCondition($condition=null)
     {
         // Reset Query if condition existed
-        if ($condition) {
+        if ($condition !== null) {
             $this->_dbr->reset_query();
             $query = $this->find();
         } else {
@@ -1021,10 +1025,15 @@ class Model extends \CI_Model implements \ArrayAccess
             $query->where($this->_field($this->primaryKey), $condition);
         }
         else {
-            // No condition situation needs to enable where protection
+            // Simply Check SQL for no condition such as update/delete
+            // Warning: This protection just simply check keywords that may not find out for some situations.
             $sql = $this->_dbr->get_compiled_select('', false); // No reset query
-            if (stripos($sql, 'where')===false)
-                throw new Exception("You could not write Model without any condition! Use ->where('1') at least.", 400);
+            // Check FROM for table condition
+            if (stripos($sql, 'from ')===false)
+                throw new Exception("You should find() first, or use condition array for update/delete", 400);
+            // No condition situation needs to enable where protection
+            if (stripos($sql, 'where ')===false)
+                throw new Exception("You could not update/delete without any condition! Use find()->where('1=1') or condition array at least.", 400);
         }
 
         return $query;

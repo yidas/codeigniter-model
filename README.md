@@ -338,6 +338,11 @@ If you call methods in Model itself, just calling `$this` as model. For example,
 Create an existent CI Query Builder instance with Model features for query purpose.
 
 ```php
+public CI_DB_query_builder find(boolean $withAll=false)
+```
+
+*Example:*
+```php
 $records = $this->Model->find()
     ->where('is_public', '1')
     ->limit(25)
@@ -374,6 +379,11 @@ $records = $queryBuilder->get()->result_array();
 reset an CI Query Builder instance with Model.
 
 ```php
+public self reset()
+```
+
+*Example:*
+```php
 $this->Model->reset()->find();
 ```
 
@@ -381,6 +391,11 @@ $this->Model->reset()->find();
 
 Insert a row with Timestamps feature into the associated database table using the attribute values of this record.
 
+```php
+public boolean insert(array $attributes)
+```
+
+*Example:*
 ```php
 $result = $this->Model->insert([
     'name' => 'Nick Tsai',
@@ -393,6 +408,11 @@ $result = $this->Model->insert([
 Insert a batch of rows with Timestamps feature into the associated database table using the attribute values of this record.
 
 ```php
+public integer batchInsert(array $data)
+```
+
+*Example:*
+```php
 $result = $this->Model->batchInsert([
      ['name' => 'Nick Tsai', 'email' => 'myintaer@gmail.com'],
      ['name' => 'Yidas', 'email' => 'service@yidas.com']
@@ -403,6 +423,11 @@ $result = $this->Model->batchInsert([
 
 Replace a row with Timestamps feature into the associated database table using the attribute values of this record.
 
+```php
+public boolean replace(array $attributes)
+```
+
+*Example:*
 ```php
 $result = $this->Model->replace([
     'id' => 1,
@@ -415,6 +440,11 @@ $result = $this->Model->replace([
 
 Save the changes with Timestamps feature to the selected record(s) into the associated database table.
 
+```php
+public boolean update(array $attributes, array|string $condition=NULL)
+```
+
+*Example:*
 ```php
 $result = $this->Model->update(['status'=>'off'], 123)
 ```
@@ -434,6 +464,11 @@ $result = $this->Model->update(['status'=>'off']);
 Update a batch of update queries into combined query strings.
 
 ```php
+public integer batchUpdate(array $dataSet, boolean $withAll=false, interger $maxLength=4*1024*1024)
+```
+
+*Example:*
+```php
 $result = $this->Model->batchUpdate([
     [['title'=>'A1', 'modified'=>'1'], ['id'=>1]],
     [['title'=>'A2', 'modified'=>'1'], ['id'=>2]],
@@ -444,6 +479,11 @@ $result = $this->Model->batchUpdate([
 
 Delete the selected record(s) with Timestamps feature into the associated database table.
 
+```php
+public boolean delete(array|string $condition=NULL, boolean $forceDelete=false, array $attributes=[])
+```
+
+*Example:*
 ```php
 $result = $this->Model->delete(123)
 ```
@@ -463,6 +503,8 @@ $this->Model->delete(123, true);
 
 Get the insert ID number when performing database inserts.
 
+
+*Example:*
 ```php
 $result = $this->Model->insert(['name' => 'Nick Tsai']);
 $lastInsertID = $this->Model->getLastInsertID();
@@ -473,6 +515,11 @@ $lastInsertID = $this->Model->getLastInsertID();
 Get the number of affected rows when doing “write” type queries (insert, update, etc.).
 
 ```php
+public integer|string getLastInsertID()
+```
+
+*Example:*
+```php
 $result = $this->Model->update(['name' => 'Nick Tsai'], 32);
 $affectedRows = $this->Model->getAffectedRows();
 ```
@@ -481,6 +528,11 @@ $affectedRows = $this->Model->getAffectedRows();
 
 Set table alias
 
+```php
+public self setAlias(string $alias)
+```
+
+*Example:*
 ```php
 $query = $this->Model->setAlias("A1")
     ->find()
@@ -561,6 +613,11 @@ $subtitle = $post['subtitle'];
 Return a single active record model instance by a primary key or an array of column values.
 
 ```php
+public object findOne(array $condition)
+```
+
+*Example:*
+```php
 // Find a single active record whose primary key value is 10
 $activeRecord = $this->Model->findOne(10);
 
@@ -573,6 +630,11 @@ $activeRecord = $this->Model->findOne(['type' => 'A', 'status' => 1]);
 Returns a list of active record models that match the specified primary key value(s) or a set of column values.
 
 ```php
+public array findAll(array $condition)
+```
+
+*Example:*
+```php
 // Find the active records whose primary key value is 10, 11 or 12.
 $activeRecords = $this->Model->findAll([10, 11, 12]);
 
@@ -584,11 +646,19 @@ $activeRecord = $this->Model->findAll(['type' => 'A', 'status' => 1]);
 
 Active Record (ORM) save for insert or update
 
+```php
+public boolean save()
+```
 
 #### `toArray()`
 
 Active Record transform to array record
 
+```php
+public array toArray()
+```
+
+*Example:*
 ```
 $record = $activeRecord->toArray();
 ```
