@@ -773,6 +773,17 @@ class Model extends \CI_Model implements \ArrayAccess
     }
 
     /**
+     * Get count from query
+     *
+     * @param boolean Reset query conditions
+     * @return integer
+     */
+    public function count($resetQuery=true)
+    {
+        return $this->getDBR()->count_all_results('', $resetQuery);
+    }
+
+    /**
      * Lock the selected rows in the table for updating.
      * 
      * sharedLock locks only for write, lockForUpdate also prevents them from being selected

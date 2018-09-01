@@ -3,7 +3,7 @@
     "description": "CodeIgniter 3 ORM Base Model pattern with My_model example",
     "keywords": ["codeIgniter", "model", "base model", "my_model"],
     "homepage": "https://github.com/yidas/codeigniter-model",
-    "type": "project",
+    "type": "library",
     "license": "MIT",
     "support": {
         "issues": "https://github.com/yidas/codeigniter-model/issues",
