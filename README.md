@@ -52,6 +52,7 @@ OUTLINE
     - [delete()](#delete)
     - [getLastInsertID()](#getlastinsertid)
     - [getAffectedRows()](#getaffectedrows)
+    - [count()](#count)
     - [setAlias()](#setalias)
 - [Active Record (ORM)](#active-record-orm)
   - [Inserts](#inserts)
@@ -525,6 +526,20 @@ public integer|string getLastInsertID()
 ```php
 $result = $this->Model->update(['name' => 'Nick Tsai'], 32);
 $affectedRows = $this->Model->getAffectedRows();
+```
+
+#### `count()`
+
+Get count from query
+
+```php
+public integer count(boolean $resetQuery=true)
+```
+
+*Example:*
+```php
+$result = $this->Model->find()->where("age <", 20);
+$totalCount = $this->Model->count();
 ```
 
 #### `setAlias()`
