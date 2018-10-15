@@ -17,13 +17,13 @@ This ORM Model extension is collected into [yidas/codeigniter-pack](https://gith
 FEATURES
 --------
 
-- ***Elegant patterns** as Laravel Eloquent ORM & Yii2 Active Record*
+- ***ORM** Model with **Elegant patterns** as Laravel Eloquent ORM & Yii2 Active Record*
 
-- ***Codeigniter Query Builder** integration*
+- ***[CodeIgniter Query Builder](#find)** integration*
 
-- ***Timestamps Behavior** & **Soft Deleting** & **Query Scopes** support*
+- ***[Timestamps Behavior](#timestamps)** & **[Validation](#validation)** & **[Soft Deleting](#soft-deleted)** & **[Query Scopes](#query-scopes)** support*
 
-- ***Read & Write Splitting** for Replications*
+- ***[Read & Write Splitting](#read--write-connections)** for Replications*
 
 This package provide Base Model which extended `CI_Model` and provided full CRUD methods to make developing database interactions easier and quicker for your CodeIgniter applications.
 
@@ -52,6 +52,7 @@ OUTLINE
     - [delete()](#delete)
     - [getLastInsertID()](#getlastinsertid)
     - [getAffectedRows()](#getaffectedrows)
+    - [count()](#count)
     - [setAlias()](#setalias)
 - [Active Record (ORM)](#active-record-orm)
   - [Inserts](#inserts)
@@ -69,6 +70,15 @@ OUTLINE
 - [Query Scopes](#query-scopes)
   - [Configuration](#configuration-2)
   - [Methods](#method-3)
+- [Validation](#validation)
+  - [Validating Input](#validating-input)
+    - [validate()](#validate)
+    - [getErrors()](#geterrors)
+  - [Declaring Rules](#declaring-rules)
+    - [rules()](#rules)
+    - [Error Message with Language](#error-message-with-language)
+  - [Filters](#filters)
+    - [Filters()](#filters-1)
 - [Read & Write Connections](#read--write-connections)
   - [Configuration](#configuration-3)
   - [Load Balancing for Databases](#load-balancing-for-databases)
@@ -107,11 +117,12 @@ The Model would defined database coonnections and table itself.
 
 ```php
 $records = $this->Posts_model->find()
-  ->where('is_public', '1')
-  ->limit(25)
-  ->order_by('id')
-  ->get()
-  ->result_array();
+    ->select('*')
+    ->where('is_public', '1')
+    ->limit(25)
+    ->order_by('id')
+    ->get()
+    ->result_array();
 ```
 
 ### CRUD
@@ -347,6 +358,7 @@ public CI_DB_query_builder find(boolean $withAll=false)
 *Example:*
 ```php
 $records = $this->Model->find()
+    ->select('*')
     ->where('is_public', '1')
     ->limit(25)
     ->order_by('id')
@@ -364,6 +376,8 @@ $records = $this->Model->find(true)
 // This is equal to find(true) method
 $this->Model->withAll()->find();
 ```
+
+> After starting `find()` from a model, it return original `CI_DB_query_builder` for chaining. The query builder could refer [CodeIgniter Query Builder Class Document](https://www.codeigniter.com/userguide3/database/query_builder.html)
 
 ##### Query Builder Implementation
 
@@ -395,7 +409,7 @@ $this->Model->reset()->find();
 Insert a row with Timestamps feature into the associated database table using the attribute values of this record.
 
 ```php
-public boolean insert(array $attributes)
+public boolean insert(array $attributes, $runValidation=true)
 ```
 
 *Example:*
@@ -411,7 +425,7 @@ $result = $this->Model->insert([
 Insert a batch of rows with Timestamps feature into the associated database table using the attribute values of this record.
 
 ```php
-public integer batchInsert(array $data)
+public integer batchInsert(array $data, $runValidation=true)
 ```
 
 *Example:*
@@ -427,7 +441,7 @@ $result = $this->Model->batchInsert([
 Replace a row with Timestamps feature into the associated database table using the attribute values of this record.
 
 ```php
-public boolean replace(array $attributes)
+public boolean replace(array $attributes, $runValidation=true)
 ```
 
 *Example:*
@@ -444,7 +458,7 @@ $result = $this->Model->replace([
 Save the changes with Timestamps feature to the selected record(s) into the associated database table.
 
 ```php
-public boolean update(array $attributes, array|string $condition=NULL)
+public boolean update(array $attributes, array|string $condition=NULL, $runValidation=true)
 ```
 
 *Example:*
@@ -467,7 +481,7 @@ $result = $this->Model->update(['status'=>'off']);
 Update a batch of update queries into combined query strings.
 
 ```php
-public integer batchUpdate(array $dataSet, boolean $withAll=false, interger $maxLength=4*1024*1024)
+public integer batchUpdate(array $dataSet, boolean $withAll=false, interger $maxLength=4*1024*1024, $runValidation=true)
 ```
 
 *Example:*
@@ -525,6 +539,20 @@ public integer|string getLastInsertID()
 ```php
 $result = $this->Model->update(['name' => 'Nick Tsai'], 32);
 $affectedRows = $this->Model->getAffectedRows();
+```
+
+#### `count()`
+
+Get count from query
+
+```php
+public integer count(boolean $resetQuery=true)
+```
+
+*Example:*
+```php
+$result = $this->Model->find()->where("age <", 20);
+$totalCount = $this->Model->count();
 ```
 
 #### `setAlias()`
@@ -658,7 +686,7 @@ $this->Model->findAll();
 Active Record (ORM) save for insert or update
 
 ```php
-public boolean save()
+public boolean save($runValidation=true)
 ```
 
 #### `toArray()`
@@ -836,10 +864,179 @@ public self withAll()
 ```php
 $this->Model->withAll()->find();
 ```
+---
+
+VALIDATION
+----------
+
+As a rule of thumb, you should never trust the data received from end users and should always validate it before putting it to good use.
+
+The ORM Model validation integrates [CodeIgniter Form Validation](https://www.codeigniter.com/userguide3/libraries/form_validation.html) that provides consistent and smooth way to deal with model data validation.
+
+### Validating Input
+
+Given a model populated with user inputs, you can validate the inputs by calling the `validate()` method. The method will return a boolean value indicating whether the validation succeeded or not. If not, you may get the error messages from `getErrors()` method.
+
+#### `validate()`
+
+Performs the data validation with filters
+
+> ORM only performs validation for assigned properties.
+
+```php
+public boolean validate($data=[], $returnData=false)
+```
+
+*Exmaple:*
+
+```php
+$this->load->model('PostsModel');
+
+if ($this->PostsModel->validate($inputData)) {
+    // all inputs are valid
+} else {
+    // validation failed: $errors is an array containing error messages
+    $errors = $this->PostsModel->getErrors();
+}
+```
+
+> The methods of `yidas\Model` for modifying such as `insert()` and `update()` will also perform validation. You can turn off `$runValidation` parameter of methods if you ensure that the input data has been validated.
+
+*Exmaple of ORM Model:*
+
+```php
+$this->load->model('PostsModel');
+$post = new PostsModel;
+$post->title = '';
+// ORM assigned or modified attributes will be validated by calling `validate()` without parameters
+if ($post->validate()) {
+    // Already performing `validate()` so that turn false for $runValidation
+    $result = $post->save(false);
+} else {
+    // validation failed: $errors is an array containing error messages
+    $errors = post->getErrors();
+}
+```
+
+> A ORM model's properties will be changed by filter after performing validation. If you have previously called `validate()`.
+You can turn off `$runValidation` of `save()` for saving without repeated validation.
+
+### getErrors()
+
+Validation - Get error data referenced by last failed Validation
+
+```php
+public array getErrors()
+```
+
+### Declaring Rules
+
+To make `validate()` really work, you should declare validation rules for the attributes you plan to validate. This should be done by overriding the `rules()` method.
+
+#### `rules()`
+
+Returns the validation rules for attributes.
+
+```php
+public array rules()
+```
+
+*Example:*
+
+```php
+class PostsModel extends yidas\Model
+{
+    protected $table = "posts";
+    
+    /**
+     * Override rules function with validation rules setting
+     */
+    public function rules()
+    {
+        return [
+            [
+                'field' => 'title',
+                'rules' => 'required|min_length[3]',
+            ],
+        ];
+    }
+}
+```
+
+> The validation rules and pattern could refer [CodeIgniter Rule Reference](https://www.codeigniter.com/userguide3/libraries/form_validation.html#rule-reference)
+
+#### Error Message with Language
+
+When you are dealing with i18n issue of validation's error message, you can integrate [CodeIgniter language class](https://www.codeigniter.com/userguide3/libraries/language.html) into rules. The following sample code is available for you to implement:
+
+```php
+public function rules()
+{
+    /**
+     * Set CodeIgniter language
+     * @see https://www.codeigniter.com/userguide3/libraries/language.html
+     */
+    $this->lang->load('error_messages', 'en-US');
+
+    return [
+        [
+            'field' => 'title',
+            'rules' => 'required|min_length[3]',
+            'errors' => [
+                'required' => $this->lang->line('required'),
+                'min_length' => $this->lang->line('min_length'),
+            ],
+        ],
+    ];
+}
+```
+
+In above case, the language file could be `application/language/en-US/error_messages_lang.php`:
+
+```php
+$lang['required'] = '`%s` is required';
+$lang['min_length'] = '`%s` requires at least %d letters';
+```
+
+After that, the `getErrors()` could returns field error messages with current language.
+
+### Filters
+
+User inputs often need to be filtered or preprocessed. For example, you may want to trim the spaces around the username input. You may declare filter rules in `filter()` method to achieve this goal.
+
+> In model's `validate()` process, the `filters()` will be performed before [`rules()`](#declaring-rules), which means the input data validated by [`rules()`](#declaring-rules) is already be filtered.
+
+To enable filters for `validate()`, you should declare filters for the attributes you plan to perform. This should be done by overriding the `filters()` method.
+
+#### `filters()`
+
+Returns the filter rules for validation.
+
+```php
+public array filters()
+```
+
+*Example:*
+
+```php
+public function filters()
+{
+    return [
+        [['title', 'name'], 'trim'],    // Perform `trim()` for title & name input data
+        [['title'], 'static::method'],  // Perform `public static function method($value)` in this model
+        [['name'], function($value) {   // Perform defined anonymous function. 'value' => '[Filtered]value'
+            return "[Filtered]" . $value;
+        }],
+    ];
+}
+```
+
+> The filters format: `[[['attr1','attr2'], callable],]`
+
 
 ---
 
-Read & Write Connections
+READ & WRITE CONNECTIONS
 ------------------------
 
 Sometimes you may wish to use one database connection for `SELECT` statements, and another for `INSERT`, `UPDATE`, and `DELETE` statements. This Model implements Replication and Read-Write Splitting, makes database connections will always be used while using Model usages.
@@ -971,7 +1168,9 @@ $this->Model->getDB()->trans_complete();
 HELPERS
 -------
 
-### `indexBy()`
+The model provides several helper methods:
+
+#### `indexBy()`
 
 Index by Key
 
