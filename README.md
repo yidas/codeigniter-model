@@ -108,11 +108,12 @@ The Model would defined database coonnections and table itself.
 
 ```php
 $records = $this->Posts_model->find()
-  ->where('is_public', '1')
-  ->limit(25)
-  ->order_by('id')
-  ->get()
-  ->result_array();
+    ->select('*')
+    ->where('is_public', '1')
+    ->limit(25)
+    ->order_by('id')
+    ->get()
+    ->result_array();
 ```
 
 ### CRUD
@@ -348,6 +349,7 @@ public CI_DB_query_builder find(boolean $withAll=false)
 *Example:*
 ```php
 $records = $this->Model->find()
+    ->select('*')
     ->where('is_public', '1')
     ->limit(25)
     ->order_by('id')
