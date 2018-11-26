@@ -111,6 +111,21 @@ class Model extends \CI_Model implements \ArrayAccess
     public $validator = '\GUMP';
 
     /**
+     * @var array Validation rules (depends on validator driver)
+     */
+    protected $rules = [];
+
+    /**
+     * @var array Validation errors (depends on validator driver)
+     */
+    private $_errors;
+
+    /**
+     * @var array Filters setting [['attribute', 'function'],]
+     */
+    protected $filters = [];
+
+    /**
      * @var object database connection for write
      */
     protected $_db;
@@ -129,11 +144,6 @@ class Model extends \CI_Model implements \ArrayAccess
      * @var object database caches by database key for read (Salve)
      */
     protected static $_dbrCaches = [];
-
-    /**
-     * @var array Validation errors (depends on validator driver)
-     */
-    private $_errors;
 
     /**
      * @var bool SOFT_DELETED one time switch
@@ -313,6 +323,37 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     public function validate($data=[])
     {
+        // Filter first
+
+        // Data type
+        $data = ($data) ? $data : $this->_writeProperties;
+        $data = $this->filter($data);
+
+        if (empty($this->rules) || empty($data)) {
+
+            return true;
+        }
+
+        // Load CodeIgniter library
+        $this->load->library('form_validation');
+
+        $this->form_validation->set_data($data);
+        $this->form_validation->set_rules($this->rules);
+
+        $result = $this->form_validation->run();
+        
+        // Error
+        if ($result===false) {
+
+            $this->_errors = $this->form_validation->error_array();
+            return false;
+
+        } else {
+
+            return $data;
+        }
+
+
         // make a validator driver
         /*
         $result = $this->validator::make($data, $this->rules());
@@ -333,6 +374,43 @@ class Model extends \CI_Model implements \ArrayAccess
     public function getErrors()
     {
         return $this->_errors;
+    }
+
+    /**
+     * Filter process
+     *
+     * @param array $data Attributes
+     * @return array Filtered data
+     */
+    public function filter($data)
+    {
+        // Filter process with setting check
+        if (!empty($this->filters) && is_array($this->filters)) {
+            
+            foreach ($this->filters as $key => $filter) { 
+                
+                if (!isset($filter[0]))
+                    throw new Exception("No attributes defined in \$filters from " . get_called_class() . " (" . __CLASS__ . ")", 500);
+
+                if (!isset($filter[1]))
+                    throw new Exception("No function defined in \$filters from " . get_called_class() . " (" . __CLASS__ . ")", 500);
+
+                list($attributes, $function) = $filter;
+
+                $attributes = (is_array($attributes)) ? $attributes : [$attributes];
+
+                // Filter each attribute
+                foreach ($attributes as $key => $attribute) {
+
+                    if (!isset($data[$attribute]))
+                        continue;
+                    
+                    $data[$attribute] = call_user_func($function, $data[$attribute]);
+                }
+            }
+        }
+        
+        return $data;
     }
 
     /**
@@ -506,15 +584,20 @@ class Model extends \CI_Model implements \ArrayAccess
      * Insert a row with Timestamps feature into the associated database table using the attribute values of this record.
      * 
      * @param array $attributes
-     * @return bool Result
+     * @param boolean $runValidation Whether to perform validation (calling validate()) before manipulate the record. 
+     * @return boolean Result
      * @example
      *  $result = $this->Model->insert([
      *      'name' => 'Nick Tsai',
      *      'email' => 'myintaer@gmail.com',
      *  ]);
      */
-    public function insert($attributes)
+    public function insert($attributes, $runValidation=true)
     {
+        // Validation
+        if ($runValidation && false===$attributes=$this->validate($attributes))
+            return false; 
+        
         $this->_attrEventBeforeInsert($attributes);
 
         return $this->_db->insert($this->table, $attributes);
@@ -524,6 +607,7 @@ class Model extends \CI_Model implements \ArrayAccess
      * Insert a batch of rows with Timestamps feature into the associated database table using the attribute values of this record.
      * 
      * @param array $data The rows to be batch inserted
+     * @param boolean $runValidation Whether to perform validation (calling validate()) before manipulate the record. 
      * @return int Number of rows inserted or FALSE on failure
      * @example
      *  $result = $this->Model->batchInsert([
@@ -531,9 +615,13 @@ class Model extends \CI_Model implements \ArrayAccess
      *      ['name' => 'Yidas', 'email' => 'service@yidas.com']
      *  ]);
      */
-    public function batchInsert($data)
+    public function batchInsert($data, $runValidation=true)
     {
         foreach ($data as $key => &$attributes) {
+
+            // Validation
+            if ($runValidation && false===$attributes=$this->validate($attributes))
+            return false; 
 
             $this->_attrEventBeforeInsert($attributes);
         }
@@ -555,6 +643,7 @@ class Model extends \CI_Model implements \ArrayAccess
      * Replace a row with Timestamps feature into the associated database table using the attribute values of this record.
      * 
      * @param array $attributes
+     * @param boolean $runValidation Whether to perform validation (calling validate()) before manipulate the record. 
      * @return bool Result
      * @example
      *  $result = $this->Model->replace([
@@ -563,8 +652,12 @@ class Model extends \CI_Model implements \ArrayAccess
      *      'email' => 'myintaer@gmail.com',
      *  ]);
      */
-    public function replace($attributes)
+    public function replace($attributes, $runValidation=true)
     {
+        // Validation
+        if ($runValidation && false===$attributes=$this->validate($attributes))
+            return false; 
+        
         $this->_attrEventBeforeInsert($attributes);
 
         return $this->_db->replace($this->table, $attributes);
@@ -575,6 +668,7 @@ class Model extends \CI_Model implements \ArrayAccess
      * 
      * @param array $attributes
      * @param mixed $condition Refer to _findByCondition() for the explanation 
+     * @param boolean $runValidation Whether to perform validation (calling validate()) before manipulate the record. 
      * @return bool Result
      *
      * @example    
@@ -584,10 +678,14 @@ class Model extends \CI_Model implements \ArrayAccess
      *  $this->Model->find()->where('id', 123);
      *  $this->Model->update(['status'=>'off']);
      */
-    public function update($attributes, $condition=NULL)
+    public function update($attributes, $condition=NULL, $runValidation=true)
     {
         // Model Condition
         $query = $this->_findByCondition($condition);
+
+        // Validation
+        if ($runValidation && false===$attributes=$this->validate($attributes))
+            return false; 
 
         $attributes = $this->_attrEventBeforeUpdate($attributes);
 
@@ -604,14 +702,15 @@ class Model extends \CI_Model implements \ArrayAccess
      * @param array $dataSet [[[Attributes], [Condition]], ]
      * @param boolean $withAll withAll() switch helper
      * @param integer $maxLenth MySQL max_allowed_packet
-     * @return integer Count of sucessful query pack(s)
+     * @param boolean $runValidation Whether to perform validation (calling validate()) before manipulate the record. 
+     * @return integer Count of successful query pack(s)
      * @example 
      *  $result = $this->Model->batchUpdate([
      *      [['title'=>'A1', 'modified'=>'1'], ['id'=>1]],
      *      [['title'=>'A2', 'modified'=>'1'], ['id'=>2]],
      *  ];);
      */
-    public function batchUpdate(Array $dataSet, $withAll=false, $maxLength=4*1024*1024)
+    public function batchUpdate(Array $dataSet, $withAll=false, $maxLength=4*1024*1024, $runValidation=true)
     {
         $count = 0;
         $sqlBatch = '';
@@ -627,6 +726,10 @@ class Model extends \CI_Model implements \ArrayAccess
             }
             // Model Condition
             $query = $this->_findByCondition($condition);
+
+            // Validation
+            if ($runValidation && false===$attributes=$this->validate($attributes))
+            return false; 
 
             $attributes = $this->_attrEventBeforeUpdate($attributes);
 
