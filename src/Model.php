@@ -308,8 +308,7 @@ class Model extends \CI_Model implements \ArrayAccess
 
     /**
      * Validation - Get errors
-     *
-     * @param array Data of attributes
+     ** @param array Data of attributes
      * @return mixed Errors data from Validator
      */
     public function validate($data=[])
@@ -954,14 +953,15 @@ class Model extends \CI_Model implements \ArrayAccess
     /**
      * Active Record (ORM) save for insert or update
      *
+     * @param boolean $runValidation Whether to perform validation (calling validate()) before manipulate the record. 
      * @return bool Result of CI insert
      */
-    public function save()
+    public function save($runValidation=true)
     {
         // ORM status distinguishing
         if (!$this->_selfCondition) {
 
-            $result = $this->insert($this->_writeProperties);
+            $result = $this->insert($this->_writeProperties, $runValidation);
             // Change this ActiveRecord to update mode
             if ($result) {
                 // ORM handling
@@ -973,7 +973,7 @@ class Model extends \CI_Model implements \ArrayAccess
 
         } else {
             
-            $result = $this->update($this->_writeProperties, $this->_selfCondition);
+            $result = $this->update($this->_writeProperties, $this->_selfCondition, $runValidation);
             // Check the primary key is changed
             if ($result && isset($this->_writeProperties[$this->primaryKey])) {
                 // Primary key condition to ensure single query result 
@@ -1027,6 +1027,42 @@ class Model extends \CI_Model implements \ArrayAccess
             }
         }
         return $array = $tmp;
+    }
+
+    /**
+     * Encodes special characters into HTML entities.
+     * 
+     * The [[$this->config->item('charset')]] will be used for encoding.
+     * 
+     * @param string $content the content to be encoded
+     * @param bool $doubleEncode whether to encode HTML entities in `$content`. If false,
+     * HTML entities in `$content` will not be further encoded.
+     * @return string the encoded content
+     * 
+     * @see http://www.php.net/manual/en/function.htmlspecialchars.php
+     * @see https://www.yiiframework.com/doc/api/2.0/yii-helpers-basehtml#encode()-detail
+     */
+    public static function htmlEncode($content, $doubleEncode = true)
+    {
+        $ci = & get_instance();
+        
+        return htmlspecialchars($content, ENT_QUOTES | ENT_SUBSTITUTE, $ci->config->item('charset') ? $ci->config->item('charset') : 'UTF-8', $doubleEncode);
+    }
+
+    /**
+     * Decodes special HTML entities back to the corresponding characters.
+     * 
+     * This is the opposite of [[encode()]].
+     * 
+     * @param string $content the content to be decoded
+     * @return string the decoded content
+     * @see htmlEncode()
+     * @see http://www.php.net/manual/en/function.htmlspecialchars-decode.php
+     * @see https://www.yiiframework.com/doc/api/2.0/yii-helpers-basehtml#decode()-detail
+     */
+    public static function htmlDecode($content)
+    {
+        return htmlspecialchars_decode($content, ENT_QUOTES);
     }
 
     /**
