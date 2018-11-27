@@ -309,40 +309,27 @@ class Model extends \CI_Model implements \ArrayAccess
     /**
      * Validation - Get errors
      *
-     * @return mixed Rule data for Validator
-     */
-    public function rules()
-    {
-        return [];
-    }
-
-    /**
-     * Validation - Get errors
-     *
+     * @param array Data of attributes
      * @return mixed Errors data from Validator
      */
     public function validate($data=[])
     {
-        // Filter first
-
-        // Data type
+        // Data fetched by ORM or input
         $data = ($data) ? $data : $this->_writeProperties;
+        // Filter first
         $data = $this->filter($data);
 
-        if (empty($this->rules) || empty($data)) {
-
+        if (empty($this->rules) || empty($data))
             return true;
-        }
 
         // Load CodeIgniter library
         $this->load->library('form_validation');
-
         $this->form_validation->set_data($data);
         $this->form_validation->set_rules($this->rules);
-
+        // Run Validate
         $result = $this->form_validation->run();
         
-        // Error
+        // Result handle
         if ($result===false) {
 
             $this->_errors = $this->form_validation->error_array();
@@ -352,18 +339,6 @@ class Model extends \CI_Model implements \ArrayAccess
 
             return $data;
         }
-
-
-        // make a validator driver
-        /*
-        $result = $this->validator::make($data, $this->rules());
-        if ($result === true) {
-            return $result;
-        } else {
-            $this->_errors = $result;
-            return false;
-        }
-        */
     }
 
     /**
