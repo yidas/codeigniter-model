@@ -368,6 +368,8 @@ $records = $this->Model->find(true)
 $this->Model->withAll()->find();
 ```
 
+> After starting `find()` from a model, it return original `CI_DB_query_builder` for chaining. The query builder could refer [CodeIgniter Query Builder Class Document](https://www.codeigniter.com/userguide3/database/query_builder.html)
+
 ##### Query Builder Implementation
 
 You could assign Query Builder as a variable to handle add-on conditions instead of using `$this->Model->getBuilder()`.
