@@ -8,7 +8,7 @@ use Exception;
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  2.11.1
+ * @version  2.12.0
  * @see      https://github.com/yidas/codeigniter-model
  */
 class Model extends \CI_Model implements \ArrayAccess
@@ -85,7 +85,7 @@ class Model extends \CI_Model implements \ArrayAccess
     const SOFT_DELETED = '';
 
     /**
-     * The actived value for SOFT_DELETED
+     * The active value for SOFT_DELETED
      *
      * @var mixed
      */
@@ -106,24 +106,9 @@ class Model extends \CI_Model implements \ArrayAccess
     const DELETED_AT = '';
 
     /**
-     * @var string Validator class with nampspace
-     */
-    public $validator = '\GUMP';
-
-    /**
-     * @var array Validation rules (depends on validator driver)
-     */
-    protected $rules = [];
-
-    /**
      * @var array Validation errors (depends on validator driver)
      */
-    private $_errors;
-
-    /**
-     * @var array Filters setting [['attribute', 'function'],]
-     */
-    protected $filters = [];
+    protected $_errors;
 
     /**
      * @var object database connection for write
@@ -307,24 +292,54 @@ class Model extends \CI_Model implements \ArrayAccess
     }
 
     /**
-     * Validation - Get errors
-     ** @param array Data of attributes
-     * @return mixed Errors data from Validator
+     * Returns the filter rules for validation.
+     *
+     * @return array Filter rules. [[['attr1','attr2'], 'callable'],]
      */
-    public function validate($data=[])
+    public function filters()
+    {
+        return [];
+    }
+
+    /**
+     * Returns the validation rules for attributes.
+     * 
+     * @see https://www.codeigniter.com/userguide3/libraries/form_validation.html#rule-reference
+     * @return array validation rules. (CodeIgniter Rule Reference)
+     */
+    public function rules()
+    {
+        return [];
+    }
+
+    /**
+     * Performs the data validation with filters
+     * 
+     * ORM only performs validation for assigned properties.
+     * 
+     * @param array Data of attributes
+     * @param boolean Return filtered data
+     * @return boolean Result
+     * @return mixed Data after filter ($returnData is true)
+     */
+    public function validate($attributes=[], $returnData=false)
     {
         // Data fetched by ORM or input
-        $data = ($data) ? $data : $this->_writeProperties;
+        $data = ($attributes) ? $attributes : $this->_writeProperties;
         // Filter first
         $data = $this->filter($data);
+        // ORM re-assign properties
+        $this->_writeProperties = (!$attributes) ? $data : $this->_writeProperties;
+        // Get validation rules from function setting
+        $rules = $this->rules();
 
-        if (empty($this->rules) || empty($data))
-            return true;
+        if (empty($rules) || empty($data))
+            return ($returnData) ? $data : true;
 
         // Load CodeIgniter library
         $this->load->library('form_validation');
         $this->form_validation->set_data($data);
-        $this->form_validation->set_rules($this->rules);
+        $this->form_validation->set_rules($rules);
         // Run Validate
         $result = $this->form_validation->run();
         
@@ -336,18 +351,30 @@ class Model extends \CI_Model implements \ArrayAccess
 
         } else {
 
-            return $data;
+            return ($returnData) ? $data : true;
         }
     }
 
     /**
-     * Validation - Get errors
+     * Validation - Get error data referenced by last failed Validation
      *
-     * @return mixed Errors data from Validator
+     * @return array 
      */
     public function getErrors()
     {
         return $this->_errors;
+    }
+
+    /**
+     * Validation - Reset errors
+     *
+     * @return boolean
+     */
+    public function resetErrors()
+    {
+        $this->_errors = null;
+
+        return true;
     }
 
     /**
@@ -358,10 +385,13 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     public function filter($data)
     {
+        // Get filter rules
+        $filters = $this->filters();
+
         // Filter process with setting check
-        if (!empty($this->filters) && is_array($this->filters)) {
+        if (!empty($filters) && is_array($filters)) {
             
-            foreach ($this->filters as $key => $filter) { 
+            foreach ($filters as $key => $filter) { 
                 
                 if (!isset($filter[0]))
                     throw new Exception("No attributes defined in \$filters from " . get_called_class() . " (" . __CLASS__ . ")", 500);
@@ -569,7 +599,7 @@ class Model extends \CI_Model implements \ArrayAccess
     public function insert($attributes, $runValidation=true)
     {
         // Validation
-        if ($runValidation && false===$attributes=$this->validate($attributes))
+        if ($runValidation && false===$attributes=$this->validate($attributes, true))
             return false; 
         
         $this->_attrEventBeforeInsert($attributes);
@@ -594,7 +624,7 @@ class Model extends \CI_Model implements \ArrayAccess
         foreach ($data as $key => &$attributes) {
 
             // Validation
-            if ($runValidation && false===$attributes=$this->validate($attributes))
+            if ($runValidation && false===$attributes=$this->validate($attributes, true))
             return false; 
 
             $this->_attrEventBeforeInsert($attributes);
@@ -629,7 +659,7 @@ class Model extends \CI_Model implements \ArrayAccess
     public function replace($attributes, $runValidation=true)
     {
         // Validation
-        if ($runValidation && false===$attributes=$this->validate($attributes))
+        if ($runValidation && false===$attributes=$this->validate($attributes, true))
             return false; 
         
         $this->_attrEventBeforeInsert($attributes);
@@ -658,7 +688,7 @@ class Model extends \CI_Model implements \ArrayAccess
         $query = $this->_findByCondition($condition);
 
         // Validation
-        if ($runValidation && false===$attributes=$this->validate($attributes))
+        if ($runValidation && false===$attributes=$this->validate($attributes, true))
             return false; 
 
         $attributes = $this->_attrEventBeforeUpdate($attributes);
@@ -702,8 +732,8 @@ class Model extends \CI_Model implements \ArrayAccess
             $query = $this->_findByCondition($condition);
 
             // Validation
-            if ($runValidation && false===$attributes=$this->validate($attributes))
-            return false; 
+            if ($runValidation && false===$attributes=$this->validate($attributes, true))
+                return false; 
 
             $attributes = $this->_attrEventBeforeUpdate($attributes);
 
@@ -943,7 +973,7 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     public function withAll()
     {
-        // Turn off switchs of all featured conditions
+        // Turn off switches of all featured conditions
         $this->withTrashed();
         $this->withoutGlobalScopes();
 
@@ -958,6 +988,9 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     public function save($runValidation=true)
     {
+        // if (empty($this->_writeProperties))
+        //     return false;
+        
         // ORM status distinguishing
         if (!$this->_selfCondition) {
 
