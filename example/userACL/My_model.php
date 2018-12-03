@@ -76,34 +76,12 @@ class My_model extends yidas\Model
      */
     protected $deletedUserAttribute = 'deleted_by';
 
-    /**
-     * @var int Application ACL
-     */
-    protected $companyID;
-
-    /**
-     * @var int Application User
-     */
-    protected $userID;
-
     function __construct()
     {
         parent::__construct();
 
-        // Assgin UserID and CompanyID from your own App mechanism
-        $this->loadACL();
-    }
-    
-    /**
-     * Load ACL from application
-     * 
-     * @param int $companyID
-     * @param int $userID
-     */
-    public function loadACL($companyID=NULL, $userID=NULL)
-    {
-        $this->companyID = ($companyID) ? $companyID : $this->config->item('sessionCompanyID');
-        $this->userID = ($userID) ? $userID : $this->config->item('sessionUserID');
+        // Load your own user library for companyID and userID data 
+        $this->load->library("user");
     }
 
     /**
@@ -115,7 +93,7 @@ class My_model extends yidas\Model
             
             $this->getBuilder()->where(
                 $this->_field($this->companyAttribute), 
-                $this->companyID
+                $this->user->getCompanyID();
                 );
         }
         
@@ -123,7 +101,7 @@ class My_model extends yidas\Model
             
             $this->getBuilder()->where(
                 $this->_field($this->userAttribute), 
-                $this->userID
+                $this->user->getID();
                 );
         }
         return parent::_globalScopes();
@@ -136,16 +114,16 @@ class My_model extends yidas\Model
         // Auto Company
         if ($this->companyAttribute && !isset($attributes[$this->companyAttribute])) {
             
-            $attributes[$this->companyAttribute] = $this->companyID;
+            $attributes[$this->companyAttribute] = $this->user->getCompanyID();;
         }
         // Auto User
         if ($this->userAttribute && !isset($attributes[$this->userAttribute])) {
             
-            $attributes[$this->userAttribute] = $this->userID;
+            $attributes[$this->userAttribute] = $this->user->getID();;
         }
         // Auto created_by
         if ($this->createdUserAttribute && !isset($attributes[$this->createdUserAttribute])) {
-            $attributes[$this->createdUserAttribute] = $this->userID;
+            $attributes[$this->createdUserAttribute] = $this->user->getID();
         }
         
         return parent::_attrEventBeforeInsert($attributes);
@@ -157,7 +135,7 @@ class My_model extends yidas\Model
     {
         // Auto updated_by
         if ($this->updatedUserAttribute && !isset($attributes[$this->updatedUserAttribute])) {
-            $attributes[$this->updatedUserAttribute] = $this->userID;
+            $attributes[$this->updatedUserAttribute] = $this->user->getID();
         }
         return parent::_attrEventBeforeUpdate($attributes);
     }
@@ -168,7 +146,7 @@ class My_model extends yidas\Model
     {
         // Auto deleted_by
         if ($this->deletedUserAttribute && !isset($attributes[$this->deletedUserAttribute])) {
-            $attributes[$this->deletedUserAttribute] = $this->userID;
+            $attributes[$this->deletedUserAttribute] = $this->user->getID();
         }
         return parent::_attrEventBeforeDelete($attributes);
     }

@@ -47,7 +47,7 @@ By default, `My_model` assumes that each row data in model is belong to a user, 
 ```php
 class Post_model extends My_model
 {
-    protected $userAttribute = NULL;
+    protected $userAttribute = false;
 }
 ```
 
@@ -67,7 +67,7 @@ By default, `My_model` assumes that each row data in model is belong to a compan
 ```php
 class Post_model extends My_model
 {
-    protected $companyAttribute = NULL;
+    protected $companyAttribute = false;
 }
 ```
 

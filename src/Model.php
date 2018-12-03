@@ -625,7 +625,7 @@ class Model extends \CI_Model implements \ArrayAccess
 
             // Validation
             if ($runValidation && false===$attributes=$this->validate($attributes, true))
-            return false; 
+                return false; 
 
             $this->_attrEventBeforeInsert($attributes);
         }

@@ -9,7 +9,6 @@
 CodeIgniter 3 Active Record (ORM) Standard Model supported Read & Write Connections
 
 [![Latest Stable Version](https://poser.pugx.org/yidas/codeigniter-model/v/stable?format=flat-square)](https://packagist.org/packages/yidas/codeigniter-model)
-[![Latest Unstable Version](https://poser.pugx.org/yidas/codeigniter-model/v/unstable?format=flat-square)](https://packagist.org/packages/yidas/codeigniter-model)
 [![License](https://poser.pugx.org/yidas/codeigniter-model/license?format=flat-square)](https://packagist.org/packages/yidas/codeigniter-model)
 
 This ORM Model extension is collected into [yidas/codeigniter-pack](https://github.com/yidas/codeigniter-pack) which is a complete solution for Codeigniter framework.
@@ -931,7 +930,7 @@ public array getErrors()
 
 ### Declaring Rules
 
-To make `validate()` really work, you should declare validation rules for the attributes you plan to validate. This should be done by overriding the `rules()` method.
+To make `validate()` really work, you should declare validation rules for the attributes you plan to validate. This should be done by overriding the `rules()` method with returning [CodeIgniter Rules](https://www.codeigniter.com/userguide3/libraries/form_validation.html#setting-rules-using-an-array).
 
 #### `rules()`
 
@@ -963,7 +962,7 @@ class PostsModel extends yidas\Model
 }
 ```
 
-> The validation rules and pattern could refer [CodeIgniter Rule Reference](https://www.codeigniter.com/userguide3/libraries/form_validation.html#rule-reference)
+> The returning array format could refer [CodeIgniter - Setting Rules Using an Array](https://www.codeigniter.com/userguide3/libraries/form_validation.html#setting-rules-using-an-array), and the rules pattern could refer [CodeIgniter - Rule Reference](https://www.codeigniter.com/userguide3/libraries/form_validation.html#rule-reference)
 
 #### Error Message with Language
 
@@ -1027,6 +1026,7 @@ public function filters()
         [['name'], function($value) {   // Perform defined anonymous function. 'value' => '[Filtered]value'
             return "[Filtered]" . $value;
         }],
+        [['content'], [$this->security, 'xss_clean']], // Perform CodeIgniter XSS Filtering for content input data
     ];
 }
 ```
