@@ -1348,11 +1348,11 @@ class Model extends \CI_Model implements \ArrayAccess
         }
         
         // ORM property check
-        if (isset($this->_writeProperties[$name]) ) {
+        if (array_key_exists($name, $this->_writeProperties) ) {
             
             return $this->_writeProperties[$name]; 
         }
-        else if (isset($this->_readProperties[$name])) {
+        else if (array_key_exists($name, $this->_readProperties)) {
             
             return $this->_readProperties[$name]; 
         } 
