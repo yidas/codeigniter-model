@@ -8,7 +8,7 @@ use Exception;
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  2.12.1
+ * @version  2.12.2
  * @see      https://github.com/yidas/codeigniter-model
  */
 class Model extends \CI_Model implements \ArrayAccess
@@ -1355,12 +1355,9 @@ class Model extends \CI_Model implements \ArrayAccess
         else if (array_key_exists($name, $this->_readProperties)) {
             
             return $this->_readProperties[$name]; 
-        } 
-        else {
-            throw new \Exception("Property `{$name}` does not exist", 500);  
         }
 
-        return;
+        return null;
     }
     
     /**
