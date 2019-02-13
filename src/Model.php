@@ -8,7 +8,7 @@ use Exception;
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  2.12.2
+ * @version  2.13.0
  * @see      https://github.com/yidas/codeigniter-model
  */
 class Model extends \CI_Model implements \ArrayAccess
@@ -129,6 +129,11 @@ class Model extends \CI_Model implements \ArrayAccess
      * @var object database caches by database key for read (Salve)
      */
     protected static $_dbrCaches = [];
+
+    /**
+     * @var object ORM schema caches by model class namespace
+     */
+    private static $_ormCaches = [];
 
     /**
      * @var bool SOFT_DELETED one time switch
@@ -1355,6 +1360,37 @@ class Model extends \CI_Model implements \ArrayAccess
         else if (array_key_exists($name, $this->_readProperties)) {
             
             return $this->_readProperties[$name]; 
+        }
+        else {
+
+            $class = get_class($this);
+
+            // Check ORM Schema cache
+            if (!isset(self::$_ormCaches[$class])) {
+
+                $columns = $this->_dbr->query("SHOW COLUMNS FROM `{$this->table}`;")
+                    ->result_array();
+
+                // Cache
+                self::$_ormCaches[get_class($this)] = $columns;
+            }
+
+            // Write cache to read properties of this ORM
+            foreach (self::$_ormCaches[get_class($this)] as $key => $column) {
+
+                $this->_readProperties[$column['Field']] = isset($this->_readProperties[$column['Field']]) 
+                    ? $this->_readProperties[$column['Field']] 
+                    : null;
+            }
+
+            // Match property again
+            if (array_key_exists($name, $this->_readProperties)) {
+        
+                return $this->_readProperties[$name]; 
+            }
+
+            // Exception
+            throw new \Exception("Property `{$name}` does not exist", 500);  
         }
 
         return null;
