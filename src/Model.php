@@ -8,7 +8,7 @@ use Exception;
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  2.13.1
+ * @version  2.14.0
  * @see      https://github.com/yidas/codeigniter-model
  */
 class Model extends \CI_Model implements \ArrayAccess
@@ -1001,6 +1001,11 @@ class Model extends \CI_Model implements \ArrayAccess
         // ORM status distinguishing
         if (!$this->_selfCondition) {
 
+            // Event
+            if (!$this->beforeSave(true)) {
+                return false;
+            }
+
             $result = $this->insert($this->_writeProperties, $runValidation);
             // Change this ActiveRecord to update mode
             if ($result) {
@@ -1009,15 +1014,27 @@ class Model extends \CI_Model implements \ArrayAccess
                 $insertID =  $this->getLastInsertID();
                 $this->_readProperties[$this->primaryKey] = $insertID;
                 $this->_selfCondition = $insertID;
+                // Event
+                $this->afterSave(true, $this->_readProperties);
             }
 
         } else {
+
+            // Event
+            if (!$this->beforeSave(false)) {
+                return false;
+            }
             
             $result = $this->update($this->_writeProperties, $this->_selfCondition, $runValidation);
             // Check the primary key is changed
-            if ($result && isset($this->_writeProperties[$this->primaryKey])) {
+            if ($result) {
+
                 // Primary key condition to ensure single query result 
-                $this->_selfCondition = $this->_writeProperties[$this->primaryKey];
+                if (isset($this->_writeProperties[$this->primaryKey])) {
+                    $this->_selfCondition = $this->_writeProperties[$this->primaryKey];
+                }
+                // Event
+                $this->afterSave(true, $this->_writeProperties);
             }
         }
 
@@ -1025,6 +1042,36 @@ class Model extends \CI_Model implements \ArrayAccess
         $this->_writeProperties = [];
         
         return $result;
+    }
+
+    /**
+     * This method is called at the beginning of inserting or updating a active record
+     *
+     * @param bool $insert whether this method called while inserting a record.
+     * If `false`, it means the method is called while updating a record.
+     * @return bool whether the insertion or updating should continue.
+     * If `false`, the insertion or updating will be cancelled.
+     */
+    public function beforeSave($insert)
+    {
+        // overriding
+        return true;
+    }
+
+    /**
+     * This method is called at the end of inserting or updating a active record
+     *
+     * @param bool $insert whether this method called while inserting a record.
+     * If `false`, it means the method is called while updating a record.
+     * @param array $changedAttributes The old values of attributes that had changed and were saved.
+     * You can use this parameter to take action based on the changes made for example send an email
+     * when the password had changed or implement audit trail that tracks all the changes.
+     * `$changedAttributes` gives you the old attribute values while the active record (`$this`) has
+     * already the new, updated values.
+     */
+    public function afterSave($insert, $changedAttributes)
+    {
+        // overriding
     }
 
     /**

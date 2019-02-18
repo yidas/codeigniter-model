@@ -62,6 +62,8 @@ OUTLINE
     - [findone()](#findone)
     - [findAll()](#findall)
     - [save()](#save)
+    - [beforeSave()](#beforesave)
+    - [afterSave()](#afterave)
     - [toArray()](#toarray)
 - [Soft Deleted](#soft-deleted)
   - [Configuration](#configuration-1)
@@ -685,7 +687,38 @@ $this->Model->findAll();
 Active Record (ORM) save for insert or update
 
 ```php
-public boolean save($runValidation=true)
+public boolean save(boolean $runValidation=true)
+```
+
+#### `beforeSave()`
+
+This method is called at the beginning of inserting or updating a active record
+
+
+```php
+public boolean beforeSave(boolean $insert)
+```
+
+*Example:*
+```
+public function beforeSave($insert)
+{
+    if (!parent::beforeSave($insert)) {
+        return false;
+    }
+
+    // ...custom code here...
+    return true;
+}
+```
+
+#### `afterSave()`
+
+This method is called at the end of inserting or updating a active record
+
+
+```php
+public boolean beforeSave(boolean $insert, array $changedAttributes)
 ```
 
 #### `toArray()`
