@@ -16,7 +16,7 @@ This ORM Model extension is collected into [yidas/codeigniter-pack](https://gith
 FEATURES
 --------
 
-- ***ORM** Model with **Elegant patterns** as Laravel Eloquent ORM & Yii2 Active Record*
+- ***[ORM](#active-record-orm)** Model with **Elegant patterns** as Laravel Eloquent ORM & Yii2 Active Record*
 
 - ***[CodeIgniter Query Builder](#find)** integration*
 
@@ -58,12 +58,15 @@ OUTLINE
   - [Updates](#updates)
   - [Deletes](#deletes)
   - [Accessing Data](#accessing-data)
+  - [Relationships](#relationships)
   - [Methods](#methods-1)
     - [findone()](#findone)
     - [findAll()](#findall)
     - [save()](#save)
     - [beforeSave()](#beforesave)
     - [afterSave()](#afterave)
+    - [hasOne()](#hasone)
+    - [hasMany()](#hasmany)
     - [toArray()](#toarray)
 - [Soft Deleted](#soft-deleted)
   - [Configuration](#configuration-1)
@@ -638,6 +641,43 @@ $title = $post->title;
 $subtitle = $post['subtitle'];
 ```
 
+### Relationships
+
+Database tables are often related to one another. For example, a blog post may have many comments, or an order could be related to the user who placed it. This library makes managing and working with these relationships easy, and supports different types of relationships:
+
+- [One To One](#hasone)
+- [One To Many](#hasmany)
+
+To work with relational data using Active Record, you first need to declare relations in models. The task is as simple as declaring a `relation method` for every interested relation, like the following,
+
+```php
+class CustomersModel extends yidas\Model
+{
+    // ...
+
+    public function orders()
+    {
+        return $this->hasMany('OrdersModel', ['customer_id' => 'id']);
+    }
+}
+```
+
+Once the relationship is defined, we may retrieve the related record using dynamic properties. Dynamic properties allow you to access relationship methods as if they were properties defined on the model:
+
+```php
+$orders = $this->CustomersModel->findOne(1)->orders;
+```
+
+> The dynamic properties' names are same as methods' names, like [Laravel Eloquent](https://laravel.com/docs/5.7/eloquent-relationships)
+
+For **Querying Relations**, You may query the `orders` relationship and add additional constraints with CI Query Builder to the relationship like so:
+
+```php
+$customer = $this->CustomersModel->findOne(1)
+
+$orders = $customer->orders()->where('active', 1)->get()->result_array();
+```
+
 ### Methods
 
 #### `findOne()`
@@ -719,6 +759,70 @@ This method is called at the end of inserting or updating a active record
 
 ```php
 public boolean beforeSave(boolean $insert, array $changedAttributes)
+```
+
+#### `hasOne()`
+
+Declares a has-one relation
+
+
+```php
+public CI_DB_query_builder hasOne(string $modelName, string $foreignKey=null, string $localKey=null)
+```
+
+*Example:*
+```php
+class OrdersModel extends yidas\Model
+{
+    // ...
+    
+    public function customer()
+    {
+        return $this->hasOne('CustomersModel', 'id', 'customer_id');
+    }
+}
+```
+*Accessing Relational Data:*
+```php
+$this->load->model('OrdersModel');
+// SELECT * FROM `orders` WHERE `id` = 321
+$order = $this->OrdersModel->findOne(321);
+
+// SELECT * FROM `customers` WHERE `is` = 321
+// $customer is a Customers active record
+$customer = $order->customer;
+```
+
+#### `hasMany()`
+
+Declares a has-many relation
+
+
+```php
+public CI_DB_query_builder hasMany(string $modelName, string $foreignKey=null, string $localKey=null)
+```
+
+*Example:*
+```php
+class CustomersModel extends yidas\Model
+{
+    // ...
+    
+    public function orders()
+    {
+        return $this->hasMany('OrdersModel', 'customer_id', 'id');
+    }
+}
+```
+*Accessing Relational Data:*
+```php
+$this->load->model('CustomersModel');
+// SELECT * FROM `customers` WHERE `id` = 123
+$customer = $this->CustomersModel->findOne(123);
+
+// SELECT * FROM `order` WHERE `customer_id` = 123
+// $orders is an array of Orders active records
+$orders = $customer->orders;
 ```
 
 #### `toArray()`
