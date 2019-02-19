@@ -64,6 +64,8 @@ OUTLINE
     - [save()](#save)
     - [beforeSave()](#beforesave)
     - [afterSave()](#afterave)
+    - [hasOne()](#hasone)
+    - [hasMany()](#hasmany)
     - [toArray()](#toarray)
 - [Soft Deleted](#soft-deleted)
   - [Configuration](#configuration-1)
@@ -719,6 +721,70 @@ This method is called at the end of inserting or updating a active record
 
 ```php
 public boolean beforeSave(boolean $insert, array $changedAttributes)
+```
+
+#### `hasOne()`
+
+Declares a has-one relation
+
+
+```php
+public CI_DB_query_builder hasOne(string $modelName, string $foreignKey=null, string $localKey=null)
+```
+
+*Example:*
+```php
+class OrdersModel extends yidas\Model
+{
+    // ...
+    
+    public function getCustomer()
+    {
+        return $this->hasOne('CustomersModel', 'id', 'customer_id');
+    }
+}
+```
+*Accessing Relational Data:*
+```php
+$this->load->model('OrdersModel');
+// SELECT * FROM `orders` WHERE `id` = 321
+$order = $this->OrdersModel->findOne(321);
+
+// SELECT * FROM `customers` WHERE `is` = 321
+// $customer is a Customers active record
+$customer = $order->customer;
+```
+
+#### `hasMany()`
+
+Declares a has-many relation
+
+
+```php
+public CI_DB_query_builder hasMany(string $modelName, string $foreignKey=null, string $localKey=null)
+```
+
+*Example:*
+```php
+class CustomersModel extends yidas\Model
+{
+    // ...
+    
+    public function getOrders()
+    {
+        return $this->hasMany('OrdersModel', 'customer_id', 'id');
+    }
+}
+```
+*Accessing Relational Data:*
+```php
+$this->load->model('CustomersModel');
+// SELECT * FROM `customers` WHERE `id` = 123
+$customer = $this->CustomersModel->findOne(123);
+
+// SELECT * FROM `order` WHERE `customer_id` = 123
+// $orders is an array of Orders active records
+$orders = $customer->orders;
 ```
 
 #### `toArray()`

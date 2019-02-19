@@ -525,12 +525,7 @@ class Model extends \CI_Model implements \ArrayAccess
             return $record;
         }
 
-        // ORM handling
-        $this->_readProperties = $record;
-        // Primary key condition to ensure single query result 
-        $this->_selfCondition = $record[$this->primaryKey];
-
-        return $this;
+        return $this->createActiveRecord($record, $record[$this->primaryKey]);
     }
 
     /**
@@ -562,14 +557,8 @@ class Model extends \CI_Model implements \ArrayAccess
             if (!isset($record[$this->primaryKey])) {
                 throw new Exception("Model's primary key not set", 500); 
             }
-            // Create an ActiveRecord
-            $activeRecord = new static();
-            // ORM handling
-            $activeRecord->_readProperties = $record;
-            // Primary key condition to ensure single query result 
-            $activeRecord->_selfCondition = $record[$this->primaryKey];
-            // Collect
-            $set[] = $activeRecord;
+            // Create an ActiveRecord into collect
+            $set[] = $this->createActiveRecord($record, $record[$this->primaryKey]);
         }
 
         return $set;
@@ -988,6 +977,24 @@ class Model extends \CI_Model implements \ArrayAccess
     }
 
     /**
+     * New a Active Record from Model by data
+     *
+     * @param array $readProperties
+     * @param array $selfCondition
+     * @return object ActiveRecord(Model)
+     */
+    public function createActiveRecord($readProperties, $selfCondition)
+    {
+        $activeRecord = new static();
+        // ORM handling
+        $activeRecord->_readProperties = $readProperties;
+        // Primary key condition to ensure single query result 
+        $activeRecord->_selfCondition = $selfCondition;
+
+        return $activeRecord;
+    }
+
+    /**
      * Active Record (ORM) save for insert or update
      *
      * @param boolean $runValidation Whether to perform validation (calling validate()) before manipulate the record. 
@@ -1072,6 +1079,67 @@ class Model extends \CI_Model implements \ArrayAccess
     public function afterSave($insert, $changedAttributes)
     {
         // overriding
+    }
+
+    /**
+     * Declares a has-many relation.
+     *
+     * @param string $modelName The model class name of the related record
+     * @param string $foreignKey 
+     * @param string $localKey
+     * @return object CI_DB_query_builder
+     */
+    public function hasMany($modelName, $foreignKey=null, $localKey=null)
+    {
+        return $this->_relationship($modelName, __FUNCTION__, $foreignKey, $localKey);
+    }
+
+    /**
+     * Declares a has-many relation.
+     *
+     * @param string $modelName The model class name of the related record
+     * @param string $foreignKey 
+     * @param string $localKey
+     * @return object CI_DB_query_builder
+     */
+    public function hasOne($modelName, $foreignKey=null, $localKey=null)
+    {
+        return $this->_relationship($modelName, __FUNCTION__, $foreignKey, $localKey);
+    }
+
+    /**
+     * Base relationship.
+     *
+     * @param string $modelName The model class name of the related record
+     * @param string $relationship
+     * @param string $foreignKey 
+     * @param string $localKey
+     * @return object CI_DB_query_builder
+     */
+    protected function _relationship($modelName, $relationship, $foreignKey=null, $localKey=null)
+    {
+        $this->load->model($modelName);
+
+        $libClass = __CLASS__;
+        
+        // Check if is using same library
+        if (!is_subclass_of($this->$modelName, $libClass)) {
+            throw new Exception("Model `{$modelName}` does not extend {$libClass}", 500);
+        }
+
+        // Keys
+        $foreignKey = ($foreignKey) ? $foreignKey : $this->primaryKey;
+        $localKey = ($localKey) ? $localKey : $this->primaryKey; 
+
+        $query = $this->$modelName->find()
+            ->where($foreignKey, $this->$localKey);
+
+        // Inject Model name into query builder for ORM relationships
+        $query->modelName = $modelName;
+        // Inject relationship type into query builder for ORM relationships
+        $query->relationship = $relationship;
+
+        return $query;
     }
 
     /**
@@ -1410,6 +1478,33 @@ class Model extends \CI_Model implements \ArrayAccess
             
             return $this->_readProperties[$name]; 
         }
+        // ORM relationship check
+        else if (method_exists($this, $method = "get" . ucfirst($name))) {
+            
+            $query = call_user_func_array([$this, $method], []);
+
+            // Extract query builder injection property
+            $modelName = isset($query->modelName) ? $query->modelName : null;
+            $relationship = isset($query->relationship) ? $query->relationship : null;
+
+            if (!$modelName || !$relationship) {
+                throw new Exception("ORM relationships error", 500);
+            }
+
+            // Check return type
+            if ($relationship == 'hasOne') {
+
+                // Keep same query builder from hasOne()
+                return $this->$modelName->findOne(null);
+
+            } else {
+
+                // Keep same query builder from hasMany()
+                return $this->$modelName->findAll(null);
+            }
+
+        }
+        // ORM schema check
         else {
 
             $class = get_class($this);
