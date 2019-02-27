@@ -8,7 +8,7 @@ use Exception;
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  2.14.0
+ * @version  2.15.0
  * @see      https://github.com/yidas/codeigniter-model
  */
 class Model extends \CI_Model implements \ArrayAccess
@@ -464,32 +464,34 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     public function find($withAll=false)
     {
+        $instance = new static;
+        
         // One time setting reset mechanism
-        if ($this->_cleanNextFind === true) {
+        if ($instance->_cleanNextFind === true) {
             // Reset alias
-            $this->setAlias(null);
+            $instance->setAlias(null);
         } else {
             // Turn on clean for next find
-            $this->_cleanNextFind = true;
+            $instance->_cleanNextFind = true;
         }
         
         // Alias option for FROM
-        $sqlFrom = ($this->alias) ? "{$this->table} AS {$this->alias}" : $this->table;
+        $sqlFrom = ($instance->alias) ? "{$instance->table} AS {$instance->alias}" : $instance->table;
         
-        $this->_dbr->from($sqlFrom);
+        $instance->_dbr->from($sqlFrom);
 
         // WithAll helper
         if ($withAll===true) {
-            $this->withAll();
+            $instance->withAll();
         }
 
         // Scope condition
-        $this->_addGlobalScopeCondition();
+        $instance->_addGlobalScopeCondition();
 
         // Soft Deleted condition
-        $this->_addSoftDeletedCondition();
+        $instance->_addSoftDeletedCondition();
 
-        return $this->_dbr;
+        return $instance->_dbr;
     }
 
     /**
@@ -514,9 +516,11 @@ class Model extends \CI_Model implements \ArrayAccess
      *  $this->Model->find()->where('id', 123);
      *  $this->Model->findOne();
      */
-    public function findOne($condition=[])
+    public static function findOne($condition=[])
     {
-        $record = $this->_findByCondition($condition)
+        $instance = new static;
+        
+        $record = $instance->_findByCondition($condition)
             ->limit(1)
             ->get()->row_array();
         
@@ -525,7 +529,7 @@ class Model extends \CI_Model implements \ArrayAccess
             return $record;
         }
 
-        return $this->createActiveRecord($record, $record[$this->primaryKey]);
+        return $instance->createActiveRecord($record, $record[$instance->primaryKey]);
     }
 
     /**
@@ -540,9 +544,11 @@ class Model extends \CI_Model implements \ArrayAccess
      *  $this->Model->find()->where_in('id', [3,21,135]);
      *  $this->Model->findAll();
      */
-    public function findAll($condition=[])
+    public static function findAll($condition=[])
     {
-        $records = $this->_findByCondition($condition)
+        $instance = new static;
+        
+        $records = $instance->_findByCondition($condition)
             ->get()->result_array();
 
         // Record check
@@ -554,11 +560,11 @@ class Model extends \CI_Model implements \ArrayAccess
         // Each ActiveRecord
         foreach ((array)$records as $key => $record) {
             // Check primary key setting
-            if (!isset($record[$this->primaryKey])) {
+            if (!isset($record[$instance->primaryKey])) {
                 throw new Exception("Model's primary key not set", 500); 
             }
             // Create an ActiveRecord into collect
-            $set[] = $this->createActiveRecord($record, $record[$this->primaryKey]);
+            $set[] = $instance->createActiveRecord($record, $record[$instance->primaryKey]);
         }
 
         return $set;
@@ -1118,12 +1124,25 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     protected function _relationship($modelName, $relationship, $foreignKey=null, $localKey=null)
     {
-        $this->load->model($modelName);
+        /**
+         * PSR-4 support check
+         * 
+         * @see https://github.com/yidas/codeigniter-psr4-autoload
+         */
+        if (strpos($modelName, "\\") !== false ) {
+            
+            $model = new $modelName;
+
+        } else {
+            // Original CodeIgniter 3 model loader
+            $this->load->model($modelName);
+            $model = $this->$modelName;
+        }
 
         $libClass = __CLASS__;
         
         // Check if is using same library
-        if (!is_subclass_of($this->$modelName, $libClass)) {
+        if (!is_subclass_of($model, $libClass)) {
             throw new Exception("Model `{$modelName}` does not extend {$libClass}", 500);
         }
 
@@ -1131,7 +1150,7 @@ class Model extends \CI_Model implements \ArrayAccess
         $foreignKey = ($foreignKey) ? $foreignKey : $this->primaryKey;
         $localKey = ($localKey) ? $localKey : $this->primaryKey; 
 
-        $query = $this->$modelName->find()
+        $query = $model->find()
             ->where($foreignKey, $this->$localKey);
 
         // Inject Model name into query builder for ORM relationships
@@ -1491,16 +1510,31 @@ class Model extends \CI_Model implements \ArrayAccess
                 throw new Exception("ORM relationships error", 500);
             }
 
+            /**
+             * PSR-4 support check
+             * 
+             * @see https://github.com/yidas/codeigniter-psr4-autoload
+             */
+            if (strpos($modelName, "\\") !== false ) {
+                
+                $model = new $modelName;
+
+            } else {
+                // Original CodeIgniter 3 model loader
+                $this->load->model($modelName);
+                $model = $this->$modelName;
+            }
+
             // Check return type
             if ($relationship == 'hasOne') {
 
                 // Keep same query builder from hasOne()
-                return $this->$modelName->findOne(null);
+                return $model->findOne(null);
 
             } else {
 
                 // Keep same query builder from hasMany()
-                return $this->$modelName->findAll(null);
+                return $model->findAll(null);
             }
 
         }
