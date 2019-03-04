@@ -8,7 +8,7 @@ use Exception;
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  2.15.0
+ * @version  2.16.0
  * @see      https://github.com/yidas/codeigniter-model
  */
 class Model extends \CI_Model implements \ArrayAccess
@@ -191,13 +191,13 @@ class Model extends \CI_Model implements \ArrayAccess
                     $this->_db = self::$_dbCaches[$this->database];
                 } else {
                     // CI Database Configuration
-                    $this->_db = $this->load->database($this->database, true);
+                    $this->_db = get_instance()->load->database($this->database, true);
                     self::$_dbCaches[$this->database] = $this->_db;
                 }
             }
             else {
                 // Config array for each Model
-                $this->_db = $this->load->database($this->database, true);
+                $this->_db = get_instance()->load->database($this->database, true);
             }
         } else {
             // CI Default DB Connection
@@ -215,13 +215,13 @@ class Model extends \CI_Model implements \ArrayAccess
                     $this->_dbr = self::$_dbrCaches[$this->databaseRead];
                 } else {
                     // CI Database Configuration
-                    $this->_dbr = $this->load->database($this->databaseRead, true);
+                    $this->_dbr = get_instance()->load->database($this->databaseRead, true);
                     self::$_dbrCaches[$this->databaseRead] = $this->_dbr;
                 }
             }
             else {
                 // Config array for each Model
-                $this->_dbr = $this->load->database($this->databaseRead, true);
+                $this->_dbr = get_instance()->load->database($this->databaseRead, true);
             }
         } else {
             // CI Default DB Connection
@@ -343,17 +343,19 @@ class Model extends \CI_Model implements \ArrayAccess
             return ($returnData) ? $data : true;
 
         // Load CodeIgniter form_validation library for yidas/model namespace, which has no effect on common one
-        $this->load->library('form_validation', null, 'yidas_model_form_validation');
-        $this->yidas_model_form_validation->reset_validation();
-        $this->yidas_model_form_validation->set_data($data);
-        $this->yidas_model_form_validation->set_rules($rules);
+        get_instance()->load->library('form_validation', null, 'yidas_model_form_validation');
+        // Get CodeIgniter validator
+        $validator = get_instance()->yidas_model_form_validation;
+        $validator->reset_validation();
+        $validator->set_data($data);
+        $validator->set_rules($rules);
         // Run Validate
-        $result = $this->yidas_model_form_validation->run();
+        $result = $validator->run();
         
         // Result handle
         if ($result===false) {
 
-            $this->_errors = $this->yidas_model_form_validation->error_array();
+            $this->_errors = $validator->error_array();
             return false;
 
         } else {
@@ -1135,7 +1137,7 @@ class Model extends \CI_Model implements \ArrayAccess
 
         } else {
             // Original CodeIgniter 3 model loader
-            $this->load->model($modelName);
+            get_instance()->load->model($modelName);
             $model = $this->$modelName;
         }
 
@@ -1458,10 +1460,10 @@ class Model extends \CI_Model implements \ArrayAccess
         }
         
         if (!isset($this->db)) {
-            $this->load->database();
+            get_instance()->load->database();
         }
         // No need to set as reference because $this->db is refered to &DB already.
-        return $this->db;
+        return get_instance()->db;
     }
 
     /**
@@ -1482,12 +1484,6 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     public function __get($name)
     {
-        // CI parent::__get() check
-        if (property_exists(get_instance(), $name)) {
-            
-            return parent::__get($name);
-        }
-        
         // ORM property check
         if (array_key_exists($name, $this->_writeProperties) ) {
             
@@ -1521,7 +1517,7 @@ class Model extends \CI_Model implements \ArrayAccess
 
             } else {
                 // Original CodeIgniter 3 model loader
-                $this->load->model($modelName);
+                get_instance()->load->model($modelName);
                 $model = $this->$modelName;
             }
 
@@ -1565,6 +1561,12 @@ class Model extends \CI_Model implements \ArrayAccess
             if (array_key_exists($name, $this->_readProperties)) {
         
                 return $this->_readProperties[$name]; 
+            }
+
+            // CI parent::__get() check
+            if (property_exists(get_instance(), $name)) {
+                
+                return parent::__get($name);
             }
 
             // Exception
