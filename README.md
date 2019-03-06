@@ -115,9 +115,11 @@ if ($post) {
 }
 ```
 
+> The pattern is similar to [Yii2 Active Record](https://www.yiiframework.com/doc/guide/2.0/en/db-active-record#active-record) and [Laravel Eloquent](https://laravel.com/docs/5.8/eloquent#inserting-and-updating-models)
+
 ### Find with Query Builder
 
-The Model would defined database coonnections and table itself.
+Start to use CodeIgniter Query Builder from `find()` method, the Model will automatically load its own database connections and data tables.
 
 ```php
 $records = $this->Posts_model->find()

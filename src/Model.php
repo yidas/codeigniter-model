@@ -8,7 +8,7 @@ use Exception;
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  2.16.0
+ * @version  2.16.1
  * @see      https://github.com/yidas/codeigniter-model
  */
 class Model extends \CI_Model implements \ArrayAccess
@@ -337,6 +337,20 @@ class Model extends \CI_Model implements \ArrayAccess
         $this->_writeProperties = (!$attributes) ? $data : $this->_writeProperties;
         // Get validation rules from function setting
         $rules = $this->rules();
+
+        // The ORM update will only collect rules with corresponding modified attributes.
+        if ($this->_selfCondition) {
+
+            $newRules = [];
+            foreach ((array) $rules as $key => $rule) {
+                if (isset($this->_writeProperties[$rule['field']])) {
+                    // Add into new rules for updating
+                    $newRules[] = $rule;
+                }
+            }
+            // Replace with mapping rules
+            $rules = $newRules;
+        }
 
         // CodeIgniter form_validation doesn't work with empty array data
         if (empty($rules) || empty($data))
