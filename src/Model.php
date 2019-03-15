@@ -8,7 +8,7 @@ use Exception;
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  2.16.1
+ * @version  2.16.2
  * @see      https://github.com/yidas/codeigniter-model
  */
 class Model extends \CI_Model implements \ArrayAccess
@@ -702,12 +702,12 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     public function update($attributes, $condition=NULL, $runValidation=true)
     {
-        // Model Condition
-        $query = $this->_findByCondition($condition);
-
         // Validation
         if ($runValidation && false===$attributes=$this->validate($attributes, true))
             return false; 
+
+        // Model Condition
+        $query = $this->_findByCondition($condition);
 
         $attributes = $this->_attrEventBeforeUpdate($attributes);
 
@@ -746,12 +746,13 @@ class Model extends \CI_Model implements \ArrayAccess
             if ($withAll===true) {
                 $this->withAll();
             }
-            // Model Condition
-            $query = $this->_findByCondition($condition);
 
             // Validation
             if ($runValidation && false===$attributes=$this->validate($attributes, true))
                 return false; 
+                
+            // Model Condition
+            $query = $this->_findByCondition($condition);
 
             $attributes = $this->_attrEventBeforeUpdate($attributes);
 
