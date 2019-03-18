@@ -700,7 +700,7 @@ $activeRecord = $this->Model->findOne(['type' => 'A', 'status' => 1]);
 
 // Query builder ORM usage
 $this->Model->find()->where('id', 10);
-$this->Model->findOne();
+$activeRecord = $this->Model->findOne();
 ```
 
 #### `findAll()`
@@ -717,11 +717,16 @@ public array findAll(array $condition=[])
 $activeRecords = $this->Model->findAll([10, 11, 12]);
 
 // Find the active recordd whose type is 'A' and whose status is 1
-$activeRecord = $this->Model->findAll(['type' => 'A', 'status' => 1]);
+$activeRecords = $this->Model->findAll(['type' => 'A', 'status' => 1]);
 
 // Query builder ORM usage
 $this->Model->find()->where_in('id', [10, 11, 12]);
-$this->Model->findAll();
+$activeRecords = $this->Model->findAll();
+
+// Print all properties for each active record from array
+foreach ($activeRecords as $activeRecord) {
+    print_r($activeRecord->toArray());
+}
 ```
 
 #### `save()`
