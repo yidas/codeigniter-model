@@ -8,7 +8,7 @@ use Exception;
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  2.16.3
+ * @version  2.16.3.1
  * @see      https://github.com/yidas/codeigniter-model
  */
 class Model extends \CI_Model implements \ArrayAccess
@@ -676,10 +676,6 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     public function replace($attributes, $runValidation=true)
     {
-        // Check attributes
-        if (!is_array($attributes) || !$attributes)
-            return false; 
-        
         // Validation
         if ($runValidation && false===$attributes=$this->validate($attributes, true))
             return false; 
@@ -706,10 +702,6 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     public function update($attributes, $condition=NULL, $runValidation=true)
     {
-        // Check attributes
-        if (!is_array($attributes) || !$attributes)
-            return false; 
-        
         // Validation
         if ($runValidation && false===$attributes=$this->validate($attributes, true))
             return false; 
