@@ -8,7 +8,7 @@ use Exception;
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  2.16.3.1
+ * @version  2.16.4
  * @see      https://github.com/yidas/codeigniter-model
  */
 class Model extends \CI_Model implements \ArrayAccess
@@ -1059,7 +1059,7 @@ class Model extends \CI_Model implements \ArrayAccess
                 return false;
             }
             
-            $result = $this->update($this->_writeProperties, $this->_selfCondition, $runValidation);
+            $result = ($this->_writeProperties) ? $this->update($this->_writeProperties, $this->_selfCondition, $runValidation) : true;
             // Check the primary key is changed
             if ($result) {
 
