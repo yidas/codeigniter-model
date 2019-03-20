@@ -1363,7 +1363,7 @@ class Model extends \CI_Model implements \ArrayAccess
                 /* Associated Array */
                 foreach ($condition as $field => $value) {
                     
-                    $query->where($field, $value);
+                    (is_array($value)) ? $query->where_in($field, $value) : $query->where($field, $value);
                 }
             }
         } 
