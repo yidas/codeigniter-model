@@ -708,7 +708,7 @@ $activeRecord = $this->Model->findOne();
 Returns a list of active record models that match the specified primary key value(s) or a set of column values.
 
 ```php
-public array findAll(array $condition=[])
+public array findAll(array $condition=[], integer|array $limit=null)
 ```
 
 *Example:*
@@ -727,6 +727,15 @@ $activeRecords = $this->Model->findAll();
 foreach ($activeRecords as $activeRecord) {
     print_r($activeRecord->toArray());
 }
+```
+
+*Example of limit:*
+```php
+// LIMIT 10
+$activeRecords = $this->Model->findAll([], 10);
+
+// OFFSET 50, LIMIT 10
+$activeRecords = $this->Model->findAll([], [50, 10]);
 ```
 
 #### `save()`
