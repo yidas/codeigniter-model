@@ -8,7 +8,7 @@ use Exception;
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  2.16.5
+ * @version  2.16.6
  * @see      https://github.com/yidas/codeigniter-model
  */
 class Model extends \CI_Model implements \ArrayAccess
@@ -352,9 +352,13 @@ class Model extends \CI_Model implements \ArrayAccess
             $rules = $newRules;
         }
 
-        // CodeIgniter form_validation doesn't work with empty array data
-        if (empty($rules) || empty($data))
+        // Check if has rules
+        if (empty($rules))
             return ($returnData) ? $data : true;
+
+        // CodeIgniter form_validation doesn't work with empty array data
+        if (empty($data))
+            return false;
 
         // Load CodeIgniter form_validation library for yidas/model namespace, which has no effect on common one
         get_instance()->load->library('form_validation', null, 'yidas_model_form_validation');
