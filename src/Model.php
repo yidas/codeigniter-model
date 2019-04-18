@@ -8,7 +8,7 @@ use Exception;
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  2.16.4
+ * @version  2.16.6
  * @see      https://github.com/yidas/codeigniter-model
  */
 class Model extends \CI_Model implements \ArrayAccess
@@ -352,9 +352,13 @@ class Model extends \CI_Model implements \ArrayAccess
             $rules = $newRules;
         }
 
-        // CodeIgniter form_validation doesn't work with empty array data
-        if (empty($rules) || empty($data))
+        // Check if has rules
+        if (empty($rules))
             return ($returnData) ? $data : true;
+
+        // CodeIgniter form_validation doesn't work with empty array data
+        if (empty($data))
+            return false;
 
         // Load CodeIgniter form_validation library for yidas/model namespace, which has no effect on common one
         get_instance()->load->library('form_validation', null, 'yidas_model_form_validation');
@@ -552,6 +556,7 @@ class Model extends \CI_Model implements \ArrayAccess
      * Returns a list of active record models that match the specified primary key value(s) or a set of column values.
      *
      * @param mixed $condition Refer to _findByCondition() for the explanation 
+     * @param integer|array $limit Limit or [offset, limit]
      * @return array Set of ActiveRecord(Model)s
      * @example
      *  $post = $this->PostModel->findAll([3,21,135]);
@@ -560,12 +565,28 @@ class Model extends \CI_Model implements \ArrayAccess
      *  $this->Model->find()->where_in('id', [3,21,135]);
      *  $this->Model->findAll();
      */
-    public static function findAll($condition=[])
+    public static function findAll($condition=[], $limit=null)
     {
         $instance = new static;
+
+        $query = $instance->_findByCondition($condition);
+
+        // Limit / offset
+        if ($limit) {
+
+            $offset = null;
+            
+            if (is_array($limit) && isset($limit[1])) {
+                // Prevent list() variable effect
+                $set = $limit;
+                list($offset, $limit) = $set;
+            }
+            
+            $query = ($limit) ? $query->limit($limit) : $query;
+            $query = ($offset) ? $query->offset($offset) : $query;
+        }
         
-        $records = $instance->_findByCondition($condition)
-            ->get()->result_array();
+        $records = $query->get()->result_array();
 
         // Record check
         if (!$records) {

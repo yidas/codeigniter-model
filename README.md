@@ -478,6 +478,13 @@ $this->Model->find()->where('id', 123);
 $result = $this->Model->update(['status'=>'off']);
 ```
 
+```php
+// Counter set usage equal to `UPDATE mytable SET count = count+1 WHERE id = 123`
+$this->Model->getDB()->set('count','count + 1', FALSE);
+$this->Model->find()->where('id', 123);
+$result = $this->Model->update([]);
+```
+
 > Notice: You need to call `update` from Model but not from CI-DB builder chain, the wrong sample code: 
 > 
 > `$this->Model->find()->where('id', 123)->update('table', ['status'=>'off']);`
@@ -708,7 +715,7 @@ $activeRecord = $this->Model->findOne();
 Returns a list of active record models that match the specified primary key value(s) or a set of column values.
 
 ```php
-public array findAll(array $condition=[])
+public array findAll(array $condition=[], integer|array $limit=null)
 ```
 
 *Example:*
@@ -727,6 +734,15 @@ $activeRecords = $this->Model->findAll();
 foreach ($activeRecords as $activeRecord) {
     print_r($activeRecord->toArray());
 }
+```
+
+*Example of limit:*
+```php
+// LIMIT 10
+$activeRecords = $this->Model->findAll([], 10);
+
+// OFFSET 50, LIMIT 10
+$activeRecords = $this->Model->findAll([], [50, 10]);
 ```
 
 #### `save()`
