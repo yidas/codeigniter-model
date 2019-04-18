@@ -1088,8 +1088,9 @@ class Model extends \CI_Model implements \ArrayAccess
                 if (isset($this->_writeProperties[$this->primaryKey])) {
                     $this->_selfCondition = $this->_writeProperties[$this->primaryKey];
                 }
+                $this->_readProperties = array_merge($this->_readProperties, $this->_writeProperties);
                 // Event
-                $this->afterSave(true, $this->_writeProperties);
+                $this->afterSave(true, $this->_readProperties);
             }
         }
 
