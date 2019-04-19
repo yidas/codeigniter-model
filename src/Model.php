@@ -1618,6 +1618,34 @@ class Model extends \CI_Model implements \ArrayAccess
     }
     
     /**
+     * ORM isset property
+     *
+     * @param string $name
+     * @return void
+     */
+    public function __isset($name) {
+
+        if (isset($this->_writeProperties[$name])) {
+            
+            return true;
+        }
+
+        return isset($this->_readProperties[$name]);
+    }
+
+    /**
+     * ORM unset property
+     *
+     * @param string $name
+     * @return void
+     */
+    public function __unset($name) {
+
+        unset($this->_writeProperties[$name]);
+        unset($this->_readProperties[$name]);
+    }
+    
+    /**
      * ArrayAccess offsetSet
      *
      * @param string $offset
@@ -1626,7 +1654,7 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     public function offsetSet($offset, $value) {
         
-        $this->_writeProperties[$offset] = $value;
+        return $this->__set($offset, $value);
     }
 
     /**
@@ -1637,7 +1665,7 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     public function offsetExists($offset) {
 
-        return isset($this->_readProperties[$offset]);
+        return $this->__isset($offset);
     }
 
     /**
@@ -1648,7 +1676,7 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     public function offsetUnset($offset) {
 
-        unset($this->_writeProperties[$offset]);
+        return $this->__unset($offset);
     }
 
     /**
