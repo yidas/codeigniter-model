@@ -8,7 +8,7 @@ use Exception;
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  2.17.0
+ * @version  2.17.1
  * @see      https://github.com/yidas/codeigniter-model
  */
 class Model extends \CI_Model implements \ArrayAccess
@@ -1071,6 +1071,8 @@ class Model extends \CI_Model implements \ArrayAccess
                 $this->_selfCondition = $insertID;
                 // Event
                 $this->afterSave(true, $this->_readProperties);
+                // Reset properties
+                $this->_writeProperties = [];
             }
 
         } else {
@@ -1091,11 +1093,10 @@ class Model extends \CI_Model implements \ArrayAccess
                 $this->_readProperties = array_merge($this->_readProperties, $this->_writeProperties);
                 // Event
                 $this->afterSave(true, $this->_readProperties);
+                // Reset properties
+                $this->_writeProperties = [];
             }
         }
-
-        // Reset properties
-        $this->_writeProperties = [];
         
         return $result;
     }
