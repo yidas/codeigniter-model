@@ -8,7 +8,7 @@ use Exception;
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  2.17.1
+ * @version  2.18.0
  * @see      https://github.com/yidas/codeigniter-model
  */
 class Model extends \CI_Model implements \ArrayAccess
@@ -484,7 +484,7 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     public function find($withAll=false)
     {
-        $instance = new static;
+        $instance = (isset($this)) ? $this : new static;
         
         // One time setting reset mechanism
         if ($instance->_cleanNextFind === true) {
@@ -538,7 +538,7 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     public static function findOne($condition=[])
     {
-        $instance = new static;
+        $instance = (isset($this)) ? $this : new static;
         
         $record = $instance->_findByCondition($condition)
             ->limit(1)
@@ -567,7 +567,7 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     public static function findAll($condition=[], $limit=null)
     {
-        $instance = new static;
+        $instance = (isset($this)) ? $this : new static;
 
         $query = $instance->_findByCondition($condition);
 
