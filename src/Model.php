@@ -8,7 +8,7 @@ use Exception;
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  2.18.0
+ * @version  2.19.0
  * @see      https://github.com/yidas/codeigniter-model
  */
 class Model extends \CI_Model implements \ArrayAccess
@@ -172,6 +172,20 @@ class Model extends \CI_Model implements \ArrayAccess
      * @var boolean
      */
     private $_cleanNextFind = false;
+
+    /**
+     * With relation methods cache for eager loading
+     *
+     * @var array
+     */
+    private $_with = [];
+
+    /**
+     * With PK array cache for current relationship method query builder
+     *
+     * @var array
+     */
+    private $_withPrimaryKeys = [];
 
     /**
      * Constructor
@@ -602,6 +616,81 @@ class Model extends \CI_Model implements \ArrayAccess
             }
             // Create an ActiveRecord into collect
             $set[] = $instance->createActiveRecord($record, $record[$instance->primaryKey]);
+            // With eager loading PK collection
+            if (!empty($instance->_with)) {
+                $primaryKeys[] = $record[$instance->primaryKey];
+            }
+        }
+
+        /**
+         * Eager loading process
+         */
+        if (isset($primaryKeys) && !empty($primaryKeys)) {
+
+            // Extract With array then clear it to prevent another findAll() calling 
+            $with = $instance->_with;
+            $instance->resetWith();
+
+            // Record map for data assigning
+            $withRecordsMap = [];
+            // Run each eager loading
+            foreach ($with as $key => $name) {
+                
+                // Check relationships method is existent
+                if (!method_exists($instance, $method = $name)) {
+                    continue;
+                }
+                // Add PK array used for _relationship query
+                $instance->_withPrimaryKeys = $primaryKeys;
+                
+                // Execute relationship query
+                $query = call_user_func_array([$instance, $method], []);
+    
+                // Extract query builder injection property
+                $modelName = isset($query->modelName) ? $query->modelName : null;
+                $relationship = isset($query->relationship) ? $query->relationship : null;
+    
+                if (!$modelName || !$relationship) {
+                    throw new Exception("ORM relationships error", 500);
+                }
+    
+                /**
+                 * PSR-4 support check
+                 * 
+                 * @see https://github.com/yidas/codeigniter-psr4-autoload
+                 */
+                if (strpos($modelName, "\\") !== false ) {
+                    
+                    $model = new $modelName;
+    
+                } else {
+                    // Original CodeIgniter 3 model loader
+                    get_instance()->load->model($modelName);
+                    $model = $instance->$modelName;
+                }
+                
+                // Get eager loading records
+                $withRecords = $model->findAll(null);
+                $withRecords = $instance->indexBy($withRecords);
+                $withRecordsMap[$name] = $withRecords;
+            }
+
+            // Assign data
+            foreach ($set as $key => &$activeRecord) {
+                $localKey = $activeRecord[$instance->primaryKey];
+                foreach ($withRecordsMap as $name => $withRecords) {
+                    if (isset($withRecords[$localKey])) {
+                        if ($relationship == 'hasOne') {
+                            $activeRecord[$name] = $withRecords[$localKey];
+                        } else {
+                            $activeRecord[$name][] = $withRecords[$localKey];
+                        }
+                    }
+                }
+            }
+
+            // Clear With PK
+            $instance->_withPrimaryKeys = [];
         }
 
         return $set;
@@ -1158,6 +1247,46 @@ class Model extends \CI_Model implements \ArrayAccess
     }
 
     /**
+     * Specifies the relations with which this query should be performed.
+     *
+     * The parameters to this method can be either one or multiple strings, or a single array
+     * of relation names.
+     * 
+     * @return self
+     */
+    public function with()
+    {
+        $with = func_get_args();
+        if (isset($with[0]) && is_array($with[0])) {
+            // the parameter is given as an array
+            $with = $with[0];
+        }
+
+        if (empty($this->_with)) {
+            $this->_with = $with;
+        } elseif (!empty($with)) {
+            foreach ($with as $key => $model) {
+                if (!in_array($model, $this->_with)) {
+                    $this->_with[] = $model;
+                }
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Reset with status
+     *
+     * @return void
+     */
+    public function resetWith()
+    {
+        $this->_with = [];
+        $this->_withPrimaryKeys = [];
+    }
+
+    /**
      * Base relationship.
      *
      * @param string $modelName The model class name of the related record
@@ -1194,8 +1323,18 @@ class Model extends \CI_Model implements \ArrayAccess
         $foreignKey = ($foreignKey) ? $foreignKey : $this->primaryKey;
         $localKey = ($localKey) ? $localKey : $this->primaryKey; 
 
-        $query = $model->find()
-            ->where($foreignKey, $this->$localKey);
+        // With eager loading switch
+        if (!empty($this->_withPrimaryKeys)) {
+            // With eager loading relationship query
+            $query = $model->find()
+                ->where_in($foreignKey, self::$_withPrimaryKeys);
+            // Clear
+            $this->_withPrimaryKeys = [];
+        } else {
+            // Normal relationship query
+            $query = $model->find()
+                ->where($foreignKey, $this->$localKey);
+        }
 
         // Inject Model name into query builder for ORM relationships
         $query->modelName = $modelName;
@@ -1517,6 +1656,7 @@ class Model extends \CI_Model implements \ArrayAccess
     public function __set($name, $value)
     {
         $this->_writeProperties[$name] = $value;
+        $this->_readProperties[$name] = $value;
     }
 
     /**
