@@ -1180,7 +1180,7 @@ class Model extends \CI_Model implements \ArrayAccess
         } else {
             // Original CodeIgniter 3 model loader
             get_instance()->load->model($modelName);
-            $model = $this->$modelName;
+            $model = get_instance()->$modelName;
         }
 
         $libClass = __CLASS__;
@@ -1560,7 +1560,7 @@ class Model extends \CI_Model implements \ArrayAccess
             } else {
                 // Original CodeIgniter 3 model loader
                 get_instance()->load->model($modelName);
-                $model = $this->$modelName;
+                $model = get_instance()->$modelName;
             }
 
             // Check return type
