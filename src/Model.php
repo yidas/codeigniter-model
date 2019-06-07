@@ -688,9 +688,13 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     public function getLastInsertID()
     {
-        // Only pdo drivers with postgres accepts a sequence name parameter.
         if ($this->_postgresSeqName !== null) {
-            return $this->getDB()->insert_id($this->_postgresSeqName);
+            try{
+                return $this->getDB()->insert_id($this->_postgresSeqName);
+            }
+            catch(Exception $exp){
+                throw new \Exception('Only pdo drivers with postgres accepts a sequence name parameter for insert_id.', 500, $exp);
+            }
         }
 
         return $this->getDB()->insert_id();
