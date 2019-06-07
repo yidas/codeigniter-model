@@ -49,6 +49,15 @@ class Model extends \CI_Model implements \ArrayAccess
     protected $primaryKey = 'id';
 
     /**
+     *  Postgres uses sequences that are needed to retrieve last inserted ID.
+     *  This implementation only works with PDO drivers and postgres dbs.
+     *  Optional - leave blank to ignore
+     *
+     * @var string postgres specific sequence name
+     */
+    protected $_postgresSeqName = null;
+
+    /**
      * Indicates if the model should be timestamped.
      *
      * @var bool
@@ -679,6 +688,11 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     public function getLastInsertID()
     {
+        // Only pdo drivers with postgres accepts a sequence name parameter.
+        if ($this->_postgresSeqName !== null) {
+            return $this->getDB()->insert_id($this->_postgresSeqName);
+        }
+
         return $this->getDB()->insert_id();
     }
 
