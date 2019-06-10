@@ -675,11 +675,12 @@ class Model extends \CI_Model implements \ArrayAccess
     /**
      * Get the insert ID number when performing database inserts.
      *
+     * @param string $name Name of the sequence object from which the ID should be returned.
      * @return integer Last insert ID
      */
-    public function getLastInsertID()
+    public function getLastInsertID($name=null)
     {
-        return $this->getDB()->insert_id();
+        return $this->getDB()->insert_id($name);
     }
 
     /**
