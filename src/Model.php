@@ -8,7 +8,7 @@ use Exception;
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  2.18.1
+ * @version  2.18.3
  * @see      https://github.com/yidas/codeigniter-model
  */
 class Model extends \CI_Model implements \ArrayAccess
@@ -172,6 +172,13 @@ class Model extends \CI_Model implements \ArrayAccess
      * @var boolean
      */
     private $_cleanNextFind = false;
+
+    /**
+     * Relationship property caches by method name
+     *
+     * @var array
+     */
+    private $_relationshipCaches = [];
 
     /**
      * Constructor
@@ -1207,6 +1214,53 @@ class Model extends \CI_Model implements \ArrayAccess
     }
 
     /**
+     * Get relationship property value
+     *
+     * @param string $method
+     * @return mixed
+     */
+    protected function _getRelationshipProperty($method)
+    {
+        // Cache check
+        if (isset($this->_relationshipCaches[$method])) {
+            return $this->_relationshipCaches[$method];
+        }
+        
+        $query = call_user_func_array([$this, $method], []);
+
+        // Extract query builder injection property
+        $modelName = isset($query->modelName) ? $query->modelName : null;
+        $relationship = isset($query->relationship) ? $query->relationship : null;
+
+        if (!$modelName || !$relationship) {
+            throw new Exception("ORM relationships error", 500);
+        }
+
+        /**
+         * PSR-4 support check
+         * 
+         * @see https://github.com/yidas/codeigniter-psr4-autoload
+         */
+        if (strpos($modelName, "\\") !== false ) {
+            
+            $model = new $modelName;
+
+        } else {
+            // Original CodeIgniter 3 model loader
+            get_instance()->load->model($modelName);
+            $model = get_instance()->$modelName;
+        }
+
+        // Check return type
+        $result = ($relationship == 'hasOne') ? $model->findOne(null) : $model->findAll(null);
+
+        // Save cache
+        $this->_relationshipCaches[$method] = $result;
+
+        return $result;
+    }
+
+    /**
      * Active Record transform to array record
      *
      * @return array
@@ -1539,43 +1593,7 @@ class Model extends \CI_Model implements \ArrayAccess
         // ORM relationship check
         else if (method_exists($this, $method = $name)) {
             
-            $query = call_user_func_array([$this, $method], []);
-
-            // Extract query builder injection property
-            $modelName = isset($query->modelName) ? $query->modelName : null;
-            $relationship = isset($query->relationship) ? $query->relationship : null;
-
-            if (!$modelName || !$relationship) {
-                throw new Exception("ORM relationships error", 500);
-            }
-
-            /**
-             * PSR-4 support check
-             * 
-             * @see https://github.com/yidas/codeigniter-psr4-autoload
-             */
-            if (strpos($modelName, "\\") !== false ) {
-                
-                $model = new $modelName;
-
-            } else {
-                // Original CodeIgniter 3 model loader
-                get_instance()->load->model($modelName);
-                $model = get_instance()->$modelName;
-            }
-
-            // Check return type
-            if ($relationship == 'hasOne') {
-
-                // Keep same query builder from hasOne()
-                return $model->findOne(null);
-
-            } else {
-
-                // Keep same query builder from hasMany()
-                return $model->findAll(null);
-            }
-
+            return $this->_getRelationshipProperty($method);
         }
         // ORM schema check
         else {
@@ -1631,8 +1649,16 @@ class Model extends \CI_Model implements \ArrayAccess
             
             return true;
         }
+        else if (isset($this->_readProperties[$name])) {
 
-        return isset($this->_readProperties[$name]);
+            return true;
+        }
+        else if (method_exists($this, $method = $name)) {
+            
+            return ($this->_getRelationshipProperty($method));
+        }
+
+        return false;
     }
 
     /**
