@@ -1715,21 +1715,6 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     public function offsetGet($offset) {
 
-        if (isset($this->_writeProperties[$offset])) {
-            
-            return $this->_writeProperties[$offset];
-        }
-        elseif (isset($this->_readProperties[$offset]) ) {
-            
-            return $this->_readProperties[$offset];
-        }
-        else {
-            // Trace debug
-            $lastFile = debug_backtrace()[0]['file'];
-            $lastLine = debug_backtrace()[0]['line'];
-            trigger_error("Undefined index: " . get_called_class() . "->{$offset} called by {$lastFile}:{$lastLine}", E_USER_NOTICE);
-
-            return null;
-        }
+        return $this->$offset;
     }
 }
