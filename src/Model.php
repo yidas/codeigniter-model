@@ -101,9 +101,16 @@ class Model extends \CI_Model implements \ArrayAccess
     /**
      * This feature is actvied while having SOFT_DELETED
      *
-     * @string Feild name for deleted_at, empty is disabled.
+     * @var string Feild name for deleted_at, empty is disabled.
      */
     const DELETED_AT = '';
+
+    /**
+     * Check property schema for write
+     *
+     * @var boolean
+     */
+    protected $propertyCheck = false;
 
     /**
      * @var array Validation errors (depends on validator driver)
@@ -1270,6 +1277,28 @@ class Model extends \CI_Model implements \ArrayAccess
     {
         return $this->_readProperties;
     }
+    
+    /**
+     * Get table schema
+     *
+     * @return array Column names
+     */
+    public function getTableSchema()
+    {
+        $class = get_class($this);
+
+        // Check ORM Schema cache
+        if (!isset(self::$_ormCaches[$class])) {
+
+            $columns = $this->_dbr->query("SHOW COLUMNS FROM `{$this->table}`;")
+                ->result_array();
+
+            // Cache
+            self::$_ormCaches[$class] = $columns;
+        }
+
+        return self::$_ormCaches[$class];
+    }
 
     /**
      * Index by Key
@@ -1571,6 +1600,24 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     public function __set($name, $value)
     {
+        // Property check option
+        if ($this->propertyCheck) {
+
+            $flag = false;
+            
+            // Check if exists
+            foreach ($this->getTableSchema() as $key => $column) {
+                if ($name == $column['Field']) {
+                    $flag = true;
+                }
+            }
+
+            // No mathc Exception
+            if (!$flag) {
+                throw new \Exception("Property `{$name}` does not exist", 500);  
+            }
+        }
+        
         $this->_writeProperties[$name] = $value;
     }
 
@@ -1598,20 +1645,8 @@ class Model extends \CI_Model implements \ArrayAccess
         // ORM schema check
         else {
 
-            $class = get_class($this);
-
-            // Check ORM Schema cache
-            if (!isset(self::$_ormCaches[$class])) {
-
-                $columns = $this->_dbr->query("SHOW COLUMNS FROM `{$this->table}`;")
-                    ->result_array();
-
-                // Cache
-                self::$_ormCaches[get_class($this)] = $columns;
-            }
-
             // Write cache to read properties of this ORM
-            foreach (self::$_ormCaches[get_class($this)] as $key => $column) {
+            foreach ($this->getTableSchema() as $key => $column) {
 
                 $this->_readProperties[$column['Field']] = isset($this->_readProperties[$column['Field']]) 
                     ? $this->_readProperties[$column['Field']] 
