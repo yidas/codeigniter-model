@@ -38,6 +38,7 @@ OUTLINE
   - [Primary Keys](#primary-keys)
   - [Timestamps](#timestamps)
   - [Database Connection](#database-connection)
+  - [Other settings](#other-settings)
 - [Basic Usage](#basic-usage)
   - [Methods](#methods)
     - [find()](#find)
@@ -337,6 +338,17 @@ class My_model extends yidas\Model
 ```
 
 > More Database Connection settings: [Read & Write Connections](#read--write-connections)
+
+
+### Other settings
+
+```php
+class My_model extends yidas\Model
+{
+    // Enable ORM property check for write
+    protected $propertyCheck = true;
+}
+```
 
 ---
 
