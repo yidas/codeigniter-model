@@ -768,8 +768,10 @@ class Model extends \CI_Model implements \ArrayAccess
      *      [['title'=>'A2', 'modified'=>'1'], ['id'=>2]],
      *  ];);
      */
-    public function batchUpdate(Array $dataSet, $withAll=false, $maxLength=4*1024*1024, $runValidation=true)
+    public function batchUpdate(Array $dataSet, $withAll=false, $maxLength=null, $runValidation=true)
     {
+        $maxLength = $maxLength ?: 4 * 1024 * 1024;
+
         $count = 0;
         $sqlBatch = '';
         
