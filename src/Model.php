@@ -478,7 +478,7 @@ class Model extends \CI_Model implements \ArrayAccess
      * Create an existent CI Query Builder instance with Model features for query purpose.
      *
      * @param boolean $withAll withAll() switch helper
-     * @return object CI_DB_query_builder
+     * @return \CI_DB_query_builder CI_DB_query_builder
      * @example 
      *  $posts = $this->PostModel->find()
      *      ->where('is_public', '1')
