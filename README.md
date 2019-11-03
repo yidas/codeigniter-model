@@ -823,7 +823,7 @@ $this->load->model('OrdersModel');
 // SELECT * FROM `orders` WHERE `id` = 321
 $order = $this->OrdersModel->findOne(321);
 
-// SELECT * FROM `customers` WHERE `is` = 321
+// SELECT * FROM `customers` WHERE `customer_id` = 321
 // $customer is a Customers active record
 $customer = $order->customer;
 ```
