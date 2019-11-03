@@ -462,7 +462,7 @@ class Model extends \CI_Model implements \ArrayAccess
      * Set table alias for next find()
      *
      * @param string Table alias name
-     * @return self
+     * @return $this
      */
     public function setAlias($alias)
     {
@@ -478,7 +478,7 @@ class Model extends \CI_Model implements \ArrayAccess
      * Create an existent CI Query Builder instance with Model features for query purpose.
      *
      * @param boolean $withAll withAll() switch helper
-     * @return object CI_DB_query_builder
+     * @return \CI_DB_query_builder CI_DB_query_builder
      * @example 
      *  $posts = $this->PostModel->find()
      *      ->where('is_public', '1')
@@ -531,7 +531,7 @@ class Model extends \CI_Model implements \ArrayAccess
     /**
      * Create an CI Query Builder instance without Model Filters for query purpose.
      *
-     * @return object CI_DB_query_builder
+     * @return \CI_DB_query_builder CI_DB_query_builder
      */
     public function forceFind()
     {
@@ -624,7 +624,7 @@ class Model extends \CI_Model implements \ArrayAccess
     /**
      * reset an CI Query Builder instance with Model.
      *
-     * @return object Self
+     * @return $this
      * @example 
      *  $this->Model->reset()->find();
      */
@@ -999,7 +999,7 @@ class Model extends \CI_Model implements \ArrayAccess
     /**
      * Without SOFT_DELETED query conditions for next find()
      *
-     * @return object Self
+     * @return $this
      * @example 
      *  $this->Model->withTrashed()->find();
      */
@@ -1013,7 +1013,7 @@ class Model extends \CI_Model implements \ArrayAccess
     /**
      * Without Global Scopes query conditions for next find()
      *
-     * @return object Self
+     * @return $this
      * @example 
      *  $this->Model->withoutGlobalScopes()->find();
      */
@@ -1028,7 +1028,7 @@ class Model extends \CI_Model implements \ArrayAccess
      * Without all query conditions for next find()
      * That is, with all set of Models for next find()
      *
-     * @return object Self
+     * @return $this
      * @example 
      *  $this->Model->withAll()->find();
      */
@@ -1154,7 +1154,7 @@ class Model extends \CI_Model implements \ArrayAccess
      * @param string $modelName The model class name of the related record
      * @param string $foreignKey 
      * @param string $localKey
-     * @return object CI_DB_query_builder
+     * @return \CI_DB_query_builder CI_DB_query_builder
      */
     public function hasMany($modelName, $foreignKey=null, $localKey=null)
     {
@@ -1167,7 +1167,7 @@ class Model extends \CI_Model implements \ArrayAccess
      * @param string $modelName The model class name of the related record
      * @param string $foreignKey 
      * @param string $localKey
-     * @return object CI_DB_query_builder
+     * @return \CI_DB_query_builder CI_DB_query_builder
      */
     public function hasOne($modelName, $foreignKey=null, $localKey=null)
     {
@@ -1181,7 +1181,7 @@ class Model extends \CI_Model implements \ArrayAccess
      * @param string $relationship
      * @param string $foreignKey 
      * @param string $localKey
-     * @return object CI_DB_query_builder
+     * @return \CI_DB_query_builder CI_DB_query_builder
      */
     protected function _relationship($modelName, $relationship, $foreignKey=null, $localKey=null)
     {
@@ -1435,7 +1435,7 @@ class Model extends \CI_Model implements \ArrayAccess
      * @param mixed Primary key value or a set of column values. If is null, it would be used for  
      *  previous find() method, which means it would not rebuild find() so it would check and 
      *  protect the SQL statement.
-     * @return object CI_DB_query_builder
+     * @return \CI_DB_query_builder CI_DB_query_builder
      * @internal
      * @example 
      *  // find a single customer whose primary key value is 10
