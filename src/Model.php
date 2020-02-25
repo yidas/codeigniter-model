@@ -1197,6 +1197,9 @@ class Model extends \CI_Model implements \ArrayAccess
         } else {
             // Original CodeIgniter 3 model loader
             get_instance()->load->model($modelName);
+            // Fix the modelName if it has path
+            $path = explode('/', $modelName);
+            $modelName = count($path) > 1 ? end($path) : $modelName;
             $model = get_instance()->$modelName;
         }
 
