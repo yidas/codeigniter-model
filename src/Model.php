@@ -1572,7 +1572,7 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     protected function _field($columnName)
     {
-        return ($this->alias) ? "`{$this->alias}`.`{$columnName}`" : "`{$this->table}`.`{$columnName}`";
+        return ($this->alias) ? "{$this->alias}.{$columnName}" : "{$this->table}.{$columnName}";
     }
 
     /**
