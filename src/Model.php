@@ -926,8 +926,7 @@ class Model extends \CI_Model implements \ArrayAccess
         $query = $this->withTrashed()->_findByCondition($condition);
 
         /* Soft Delete Mode */
-        if (static::SOFT_DELETED 
-            && isset($this->softDeletedFalseValue)) {
+        if (static::SOFT_DELETED) {
             
             // Mark the records as deleted
             $attributes[static::SOFT_DELETED] = $this->softDeletedFalseValue;
@@ -1538,7 +1537,7 @@ class Model extends \CI_Model implements \ArrayAccess
             // Reset SOFT_DELETED switch
             $this->_withoutSoftDeletedScope = false;
         } 
-        elseif (static::SOFT_DELETED && isset($this->softDeletedFalseValue)) {
+        elseif (static::SOFT_DELETED) {
             // Add condition
             $this->_dbr->where($this->_field(static::SOFT_DELETED), 
             $this->softDeletedFalseValue);
