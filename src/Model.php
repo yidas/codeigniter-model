@@ -49,6 +49,13 @@ class Model extends \CI_Model implements \ArrayAccess
     protected $primaryKey = 'id';
 
     /**
+     * Fillable columns of table
+     *
+     * @var array Field names of columns
+     */
+    protected $fillable = [];
+
+    /**
      * Indicates if the model should be timestamped.
      *
      * @var bool
@@ -657,6 +664,8 @@ class Model extends \CI_Model implements \ArrayAccess
         
         $this->_attrEventBeforeInsert($attributes);
 
+        if ($this->fillable) $attributes = array_intersect_key($attributes, array_flip($this->fillable)); 
+
         return $this->_db->insert($this->table, $attributes);
     }
 
@@ -747,6 +756,8 @@ class Model extends \CI_Model implements \ArrayAccess
 
         $attributes = $this->_attrEventBeforeUpdate($attributes);
 
+        if ($this->fillable) $attributes = array_intersect_key($attributes, array_flip($this->fillable));
+        
         // Pack query then move it to write DB from read DB
         $sql = $this->_dbr->set($attributes)->get_compiled_update();
         $this->_dbr->reset_query();
