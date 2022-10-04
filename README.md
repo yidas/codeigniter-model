@@ -1,6 +1,6 @@
 <p align="center">
-    <a href="https://codeigniter.com/" target="_blank">
-        <img src="https://upload.wikimedia.org/wikipedia/en/7/7c/CodeIgniter.png" height="">
+    <a href="https://codeigniter.com/userguide3/" target="_blank">
+        <img src="https://upload.wikimedia.org/wikipedia/zh/7/7c/CodeIgniter.png" height="">
     </a>
     <h1 align="center">CodeIgniter Model</h1>
     <br>
