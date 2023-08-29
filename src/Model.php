@@ -8,7 +8,7 @@ use Exception;
  * Base Model
  *
  * @author   Nick Tsai <myintaer@gmail.com>
- * @version  2.19.2
+ * @version  2.19.3
  * @see      https://github.com/yidas/codeigniter-model
  */
 class Model extends \CI_Model implements \ArrayAccess
@@ -1586,7 +1586,15 @@ class Model extends \CI_Model implements \ArrayAccess
      */
     protected function _field($columnName)
     {
-        return ($this->alias) ? "`{$this->alias}`.`{$columnName}`" : "`{$this->table}`.`{$columnName}`";
+        if ($this->alias) {
+            return "`{$this->alias}`.`{$columnName}`";
+        }
+        
+        if ($this->_db->dbprefix) {
+            return "{$this->table}.`{$columnName}`";
+        }
+        
+        return "`{$this->table}`.`{$columnName}`";
     }
 
     /**
